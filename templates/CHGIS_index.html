@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CHGIS Map</title>
+</head>
+<body>
+  <h1>CHGIS Map</h1>
+  <form action="/CHGIS_map" method="POST">
+    <label for="place_names">Place Names:</label>
+    <input type="text" id="place_names" name="place_names" placeholder="Enter place names">
+    <br>
+    <label for="date">Date:</label>
+    <input type="text" id="date" name="date" placeholder="Enter a date">
+    <br>
+    <label for="search_type">Search Type:</label>
+    <input type="checkbox" id="prefectures" name="prefectures" value="prefectures" checked>
+    <label for="prefectures">Prefectures</label>
+    <input type="checkbox" id="counties" name="counties" value="counties" checked>
+    <label for="counties">Counties</label>
+    <br>
+    <input type="submit" value="Generate Map">
+  </form>
+</body>
+</html>
