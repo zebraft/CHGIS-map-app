@@ -166,6 +166,8 @@ def generate_map(data):
         
     m.add_child(marker_cluster)
 
+    #m.add_child(folium.LatLngPopup())
+
     return m
 
 
