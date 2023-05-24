@@ -1,24 +1,102 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>CHGIS Map</title>
+    <title>Simple CHGIS Map</title>
+    <style>
+      body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          justify-content: center;
+          /*align-items: center;*/
+          min-height: 100vh;
+          background-color: #fde6cc;
+          color: #333333;
+      }
+
+      h1 {
+          font-size: 32px;
+          margin-top: 1in;
+          margin-bottom: 40px;
+          text-align: center;
+      }
+
+      p {
+          font-size: 18px;
+          line-height: 1.6;
+          margin-bottom: 20px;
+          text-align: left;
+      }
+
+      i {
+          font-style: italic;
+      }
+
+      .form-section input[type="text"] {
+          font-size: 16px;
+          padding: 13px;
+          width: 300px;
+          margin-bottom: 15px;
+      }
+
+      .form-section .generate-button input[type="submit"] {
+          font-size: 30px;
+          margin-top: 15px;
+          padding: 12x 24px;
+          width: 200px;
+      }
+  </style>
 </head>
 <body>
-  <h1>CHGIS Map</h1>
-  <form action="/CHGIS_map" method="POST">
-    <label for="place_names">Place Names:</label>
-    <input type="text" id="place_names" name="place_names" placeholder="Enter place names">
-    <br>
-    <label for="date">Date:</label>
-    <input type="text" id="date" name="date" placeholder="Enter a date">
-    <br>
-    <label for="search_type">Search Type:</label>
-    <input type="checkbox" id="prefectures" name="prefectures" value="prefectures" checked>
-    <label for="prefectures">Prefectures</label>
-    <input type="checkbox" id="counties" name="counties" value="counties" checked>
-    <label for="counties">Counties</label>
-    <br>
-    <input type="submit" value="Generate Map">
-  </form>
-</body>
-</html>
+  <div class="container">
+      <h1>Simple CHGIS Map</h1>
+
+      <div class="form-section">
+          <form action="/CHGIS_map" method="POST">
+              <label for="place_names">Place Names:</label>
+              <input type="text" id="place_names" name="place_names" placeholder="Enter place names">
+              <br>
+              <label for="date">Date:</label>
+              <input type="text" id="date" name="date" placeholder="Enter a date">
+              <br>
+              <label for="search_type">Search Type:</label>
+              <input type="checkbox" id="prefectures" name="prefectures" value="prefectures" checked>
+              <label for="prefectures">Prefectures</label>
+              <input type="checkbox" id="counties" name="counties" value="counties" checked>
+              <label for="counties">Counties</label>
+              <br>
+              <div class="generate-button">
+                  <input type="submit" value="Generate Map">
+              </div>
+          </form>
+      </div>
+
+      <p>
+          If you're reading a historical text and you want to quickly see where the places mentioned therein were, here's a simple way.
+      </p>
+      <p>
+          In the "Place name" box, you can type individual place names (use traditional Chinese 繁體中文) or a list of places, separated by commas (regular ',' or Chinese '，').
+      </p>
+      <p>
+          You can specify a year in the Western calendar or leave it blank. You can also leave the place name blank to retrieve all places for a given year.
+      </p>
+      <p>
+          By default, the map will show both prefectures (<i>jun</i> 郡 and equivalent) and counties (<i>xian</i> 縣 and equivalent).
+      </p>
+      <p>
+          Data is from the China Historical Geographical Information System (CHGIS, v6). You can also try out their API: <a>https://maps.cga.harvard.edu/tgaz/?</a>.
+      </p>
+      <p>
+          Scrolling over the points shows you the name of the feature and the relevant dates, along with CHGIS information about how it started and ended.
+      </p>
+      <p>
+          Clicking on a point will give you a link to a CHGIS page where you can find more information, including their discussions of the historical sources.
+      </p>
+      <p>
+          Nearby and overlapping points will collapse; the number shows how many there are. Click to unfold and zoom in.
+      </p>
+  </div>
+  </body>
+  </html>
+  
