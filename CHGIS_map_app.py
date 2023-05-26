@@ -140,8 +140,8 @@ def generate_map(data):
     m = folium.Map(tiles='Stamen Terrain', location=center, zoom_start=6)
     print("map generated!")
 
-    marker_cluster = MarkerCluster(disableClusteringAtZoom=6).add_to(m)
-
+    marker_cluster = MarkerCluster(disableClusteringAtZoom=10).add_to(m)
+    
     # Add markers for each place
     for index, row in data.iterrows():
         if row['LEV_RANK'] == 3:  # Check if it's a prefecture (LEV_RANK 3)
@@ -151,7 +151,8 @@ def generate_map(data):
                 icon=folium.Icon(icon='star', prefix='fa', color='blue'),
                 draggable=True,
                 popup = f"<a href='https://maps.cga.harvard.edu/tgaz/placename?n={row['NAME_FT']}' target='_blank'>Link to CHGIS</a>",
-                tooltip=f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']}{row['BEG_CHG_TY']}\n{row['END_YR']}{row['END_CHG_TY']}"
+                tooltip=f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']}{row['BEG_CHG_TY']}\n{row['END_YR']}{row['END_CHG_TY']}",
+                name='name'
                 )
             marker_cluster.add_child(marker)
             #print("Added prefecture!")
@@ -166,7 +167,8 @@ def generate_map(data):
                 fill_opacity=1.0,
                 draggable=True,
                 popup = f"<a href='https://maps.cga.harvard.edu/tgaz/placename?n={row['NAME_FT']}' target='_blank'>Link to CHGIS</a>",
-                tooltip=f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']}{row['BEG_CHG_TY']}\n{row['END_YR']}{row['END_CHG_TY']}"
+                tooltip=f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']}{row['BEG_CHG_TY']}\n{row['END_YR']}{row['END_CHG_TY']}",
+                name='name'
                 )
             marker_cluster.add_child(marker)
             #print("Added county!")
