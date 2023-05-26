@@ -111,7 +111,7 @@ def filter_data(place_names, date, date_range, prefectures, counties):
             filtered_prefectures = filtered_prefectures[
                 (filtered_prefectures['BEG_YR'] <= end_date) & (filtered_prefectures['END_YR'] >= begin_date)
             ]
-            print("Date processed -- prefectures!")
+            #print("Date processed -- prefectures!")
         filtered_data = pd.concat([filtered_data, filtered_prefectures])
         print(filtered_data.head())
 
@@ -123,7 +123,7 @@ def filter_data(place_names, date, date_range, prefectures, counties):
             filtered_counties = filtered_counties[
                 (filtered_counties['BEG_YR'] <= end_date) & (filtered_counties['END_YR'] >= begin_date)
             ]
-            print("date processed - counties!")
+            #print("date processed - counties!")
         filtered_data = pd.concat([filtered_data, filtered_counties])
 
     #print("Data filtered ok!")
@@ -154,7 +154,7 @@ def generate_map(data):
                 tooltip=f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']}{row['BEG_CHG_TY']}\n{row['END_YR']}{row['END_CHG_TY']}"
                 )
             marker_cluster.add_child(marker)
-            print("Added prefecture!")
+            #print("Added prefecture!")
         elif row['LEV_RANK'] == 6:  # Check if it's a county (LEV_RANK 6)
             # Add a circle marker for counties
             marker = folium.CircleMarker(
@@ -169,11 +169,11 @@ def generate_map(data):
                 tooltip=f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']}{row['BEG_CHG_TY']}\n{row['END_YR']}{row['END_CHG_TY']}"
                 )
             marker_cluster.add_child(marker)
-            print("Added county!")
+            #print("Added county!")
         else:
             # Log an error for unrecognized results
             logger.error(f"Unrecognized LEV_RANK value: {row['LEV_RANK']}")
-            print("error!")
+            print(f"Level Rank wrong for {row}!")
         
     m.add_child(marker_cluster)
 
