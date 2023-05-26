@@ -1,7 +1,7 @@
 # Chinese historical geography
 
 ## Use
-- a quick and easy way to map premodern Chinese locations
+- a quick and easy way to see premodern Chinese locations on a map
 - Testing at https://zpyany.pythonanywhere.com/CHGIS_map
 
 ## Features
