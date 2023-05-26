@@ -36,7 +36,7 @@
       .form-section input[type="text"] {
           font-size: 16px;
           padding: 13px;
-          width: 300px;
+          width: max-content;
           margin-bottom: 15px;
       }
 
@@ -59,6 +59,10 @@
               <br>
               <label for="date">Date:</label>
               <input type="text" id="date" name="date" placeholder="Enter a date">
+              <br>
+              <span style="padding-left: 20px;">OR</span>
+              <label for="date_range">provide a Date Range, separated by a comma:</label>
+              <input type="text" id="date_range" name="date_range" placeholder="Begin,End">
               <br>
               <label for="search_type">Search Type:</label>
               <input type="checkbox" id="prefectures" name="prefectures" value="prefectures" checked>

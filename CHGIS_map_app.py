@@ -38,17 +38,19 @@ def chgis_map():
         # Retrieve user input from the form
         place_names = request.form.get('place_names')
         date = request.form.get('date')
+        date_range = request.form.get('date_range')
         prefectures = request.form.get('prefectures')
         counties = request.form.get('counties')
 
         print("User Input:")
         print("Place Names:", place_names)
         print("Date:", date)
+        print("Date Range:", date_range)
         print("Prefectures:", prefectures)
         print("Counties:", counties)
 
         # Process the user input and generate the map
-        filtered_data = filter_data(place_names, date, prefectures, counties)
+        filtered_data = filter_data(place_names, date, date_range, prefectures, counties)
 
         generated_map = generate_map(filtered_data)
 
@@ -71,7 +73,7 @@ prefectures_df = pd.read_csv('data/CHGIS_prefectures.csv')
 counties_df = pd.read_csv('data/CHGIS_counties.csv')
 
 # Process user input and filter the data
-def filter_data(place_names, date, prefectures, counties):
+def filter_data(place_names, date, date_range, prefectures, counties):
     filtered_data = pd.DataFrame()  # Create an empty DataFrame for the filtered data
 
     # split up place names, if necessary
@@ -83,18 +85,31 @@ def filter_data(place_names, date, prefectures, counties):
         # Single place name, convert it to a list
         place_names = [place_names]
 
-    #print(f"{place_names} correctly split!")
-
+    # single date
     if date:
-        date = int(date)
+        begin_date = int(date)
+        end_date = int(date)
+
+  
+    if date_range:
+        date_group = [date.strip() for date in re.split(pattern, date_range)]
+        begin_date = int(date_group[0])
+        end_date = int(date_group[1])
+
+    
+    print(f"Date range is {begin_date} to {end_date}")
+
+    # # old way of handling dates - single date only
+    # if date:
+    #     date = int(date)
 
     # Filter the prefectures data
     if prefectures:
         #filtered_prefectures = prefectures_df[prefectures_df['NAME_FT'].isin(place_names)]
         filtered_prefectures = prefectures_df[prefectures_df['NAME_FT'].apply(lambda x: any(name in x for name in place_names))]
-        if date:
+        if date or date_range:
             filtered_prefectures = filtered_prefectures[
-                (filtered_prefectures['BEG_YR'] <= date) & (filtered_prefectures['END_YR'] >= date)
+                (filtered_prefectures['BEG_YR'] <= end_date) & (filtered_prefectures['END_YR'] >= begin_date)
             ]
             print("Date processed -- prefectures!")
         filtered_data = pd.concat([filtered_data, filtered_prefectures])
@@ -104,9 +119,9 @@ def filter_data(place_names, date, prefectures, counties):
     if counties:
         #filtered_counties = counties_df[counties_df['NAME_FT'].isin(place_names)]
         filtered_counties = counties_df[counties_df['NAME_FT'].apply(lambda x: any(name in x for name in place_names))]
-        if date:
+        if date or date_range:
             filtered_counties = filtered_counties[
-                (filtered_counties['BEG_YR'] <= date) & (filtered_counties['END_YR'] >= date)
+                (filtered_counties['BEG_YR'] <= end_date) & (filtered_counties['END_YR'] >= begin_date)
             ]
             print("date processed - counties!")
         filtered_data = pd.concat([filtered_data, filtered_counties])
