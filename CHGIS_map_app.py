@@ -79,10 +79,6 @@ def filter_data(place_names, date, prefectures, counties):
     if re.search(pattern, place_names):
         # Split the place_names using the regular expression pattern
         place_names = [name.strip() for name in re.split(pattern, place_names)]
-    # get place name(s)
-#    if "," in place_names:
-#        # Split the place_names by commas to create a list
-#        place_names = [name.strip() for name in place_names.split(",")]
     else:
         # Single place name, convert it to a list
         place_names = [place_names]
