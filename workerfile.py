@@ -2,9 +2,18 @@ import re
 import requests
 import pandas as pd
 
-print("hellO")
+#print("hellO")
 
 #NB, turns out that 'sys_id' does match up with 'hvd' ids in the api!!!
+
+
+lister = "2628,Yanling Xian,傿陵县,傿陵縣,114.17869,34.18715,今河南鄢陵县西北古城,Xian,县,6,-202,,-196,,44348,POINT,44348,FROM_FD,,,,,新建,更名,POINT (114.17869000007009 34.18714999995262)".split(",")
+listerlist = [lister]  # Wrap the list in another list
+
+headers = "ID_,NAME_PY,NAME_CH,NAME_FT,X_COOR,Y_COOR,PRES_LOC,TYPE_PY,TYPE_CH,LEV_RANK,BEG_YR,BEG_RULE,END_YR,END_RULE,NOTE_ID,OBJ_TYPE,SYS_ID,GEO_SRC,COMPILER,GECOMPLR,CHECKER,ENT_DATE,BEG_CHG_TY,END_CHG_TY,geometry".split(',')
+df = pd.DataFrame(listerlist, columns=headers)
+
+print(df['BEG_CHG_TY']=='')
 
 def tooltip_maker(row): # invoke when looping through 'filtered_data' dataframe
 
@@ -62,13 +71,9 @@ def tooltip_maker(row): # invoke when looping through 'filtered_data' dataframe
     return f"{name}\n{began}{began_reason}\n{ended}{ended_reason}\nIs part of: {part_of_string}\nSub-units: {sub_unit_string}"
 
 
-lister = "2628,Yanling Xian,傿陵县,傿陵縣,114.17869,34.18715,今河南鄢陵县西北古城,Xian,县,6,-202,,-196,,44348,POINT,44348,FROM_FD,,,,,新建,更名,POINT (114.17869000007009 34.18714999995262)".split(",")
-columns = "ID_,NAME_PY,NAME_CH,NAME_FT,X_COOR,Y_COOR,PRES_LOC,TYPE_PY,TYPE_CH,LEV_RANK,BEG_YR,BEG_RULE,END_YR,END_RULE,NOTE_ID,OBJ_TYPE,SYS_ID,GEO_SRC,COMPILER,GECOMPLR,CHECKER,ENT_DATE,BEG_CHG_TY,END_CHG_TY,geometry".split(',')
-df = pd.DataFrame(lister, columns)
-
 #print(df[0])
 
-tooltip_maker(df[0])
+#tooltip_maker(df[0])
 
 # # Inside your existing code
 # tooltip = f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']}{row['BEG_CHG_TY']}\n{row['END_YR']}{row['END_CHG_TY']}"
