@@ -131,6 +131,9 @@ def filter_data(place_names, date, date_range, prefectures, counties):
     #print(filtered_data)
     return filtered_data
     
+# def tooltip_maker(row)
+# not implemented -- CHGIS 'sys_id' cannot be matched with API 'hvd" ids???
+
 
 # Generate the map
 def generate_map(data):
