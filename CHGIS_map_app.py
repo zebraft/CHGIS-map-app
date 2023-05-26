@@ -140,7 +140,7 @@ def generate_map(data):
     m = folium.Map(tiles='Stamen Terrain', location=center, zoom_start=6)
     print("map generated!")
 
-    marker_cluster = MarkerCluster(disableClusteringAtZoom=10).add_to(m)
+    marker_cluster = MarkerCluster(disableClusteringAtZoom=8).add_to(m)
 
     # Add markers for each place
     for index, row in data.iterrows():
