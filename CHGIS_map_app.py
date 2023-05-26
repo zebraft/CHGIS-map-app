@@ -131,6 +131,9 @@ def filter_data(place_names, date, date_range, prefectures, counties):
     #print(filtered_data)
     return filtered_data
     
+# def tooltip_maker(row)
+# not implemented -- CHGIS 'sys_id' cannot be matched with API 'hvd" ids???
+
 
 # Generate the map
 def generate_map(data):
@@ -144,18 +147,30 @@ def generate_map(data):
 
     # Add markers for each place
     for index, row in data.iterrows():
-        if row['LEV_RANK'] == 3:  # Check if it's a prefecture (LEV_RANK 3)
+
+        # make tooltip, avoiding 'isna'
+        if pd.isna(row['BEG_CHG_TY']):
+            tooltip = f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']} to {row['END_YR']}"
+            print("IT'S TRUE!!!")
+        else:
+            print(row['BEG_CHG_TY'])
+            tooltip = f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']}{row['BEG_CHG_TY']}\n{row['END_YR']}{row['END_CHG_TY']}"
+        
+        #prefectures (LEV_RANK 3)
+        if row['LEV_RANK'] == 3:  
             # Add a star marker for prefectures
             marker = folium.Marker(
                 location=[row['Y_COOR'], row['X_COOR']],
                 icon=folium.Icon(icon='star', prefix='fa', color='blue'),
                 draggable=True,
                 popup = f"<a href='https://maps.cga.harvard.edu/tgaz/placename?n={row['NAME_FT']}' target='_blank'>Link to CHGIS</a>",
-                tooltip=f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']}{row['BEG_CHG_TY']}\n{row['END_YR']}{row['END_CHG_TY']}"
+                tooltip=tooltip
                 )
             marker_cluster.add_child(marker)
             #print("Added prefecture!")
-        elif row['LEV_RANK'] == 6:  # Check if it's a county (LEV_RANK 6)
+        
+        # counties
+        elif row['LEV_RANK'] == 6: 
             # Add a circle marker for counties
             marker = folium.CircleMarker(
                 location=[row['Y_COOR'], row['X_COOR']],
@@ -166,10 +181,11 @@ def generate_map(data):
                 fill_opacity=1.0,
                 draggable=True,
                 popup = f"<a href='https://maps.cga.harvard.edu/tgaz/placename?n={row['NAME_FT']}' target='_blank'>Link to CHGIS</a>",
-                tooltip=f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']}{row['BEG_CHG_TY']}\n{row['END_YR']}{row['END_CHG_TY']}"
+                tooltip=tooltip
                 )
             marker_cluster.add_child(marker)
             #print("Added county!")
+
         else:
             # Log an error for unrecognized results
             logger.error(f"Unrecognized LEV_RANK value: {row['LEV_RANK']}")
