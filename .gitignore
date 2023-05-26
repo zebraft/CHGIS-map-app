@@ -1,3 +1,4 @@
 .venv
 .gitignore
 .DS_Store
+workerfile.py
