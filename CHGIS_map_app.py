@@ -97,7 +97,7 @@ def filter_data(place_names, date, date_range, prefectures, counties):
         end_date = int(date_group[1])
 
     
-    print(f"Date range is {begin_date} to {end_date}")
+    #print(f"Date range is {begin_date} to {end_date}")
 
     # # old way of handling dates - single date only
     # if date:
