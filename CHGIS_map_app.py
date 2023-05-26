@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import folium
 from folium.plugins import MarkerCluster
 import re
@@ -113,7 +113,7 @@ def filter_data(place_names, date, date_range, prefectures, counties):
             ]
             #print("Date processed -- prefectures!")
         filtered_data = pd.concat([filtered_data, filtered_prefectures])
-        print(filtered_data.head())
+        print(f"Number of prefectures returned: {filtered_data.shape[0]}")
 
     # Filter the counties data
     if counties:
@@ -125,9 +125,10 @@ def filter_data(place_names, date, date_range, prefectures, counties):
             ]
             #print("date processed - counties!")
         filtered_data = pd.concat([filtered_data, filtered_counties])
+        print(f"Number of counties returned: {filtered_data.shape[0]}")
 
     #print("Data filtered ok!")
-    print(filtered_data)
+    #print(filtered_data)
     return filtered_data
     
 
@@ -138,7 +139,6 @@ def generate_map(data):
 
     m = folium.Map(tiles='Stamen Terrain', location=center, zoom_start=6)
     print("map generated!")
-    print(list(data))
 
     marker_cluster = MarkerCluster().add_to(m)
 
