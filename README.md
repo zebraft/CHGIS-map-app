@@ -21,4 +21,4 @@
 
 ## etc
 - See also, their API: https://maps.cga.harvard.edu/tgaz/?.
-- It's slow.  I'm cheap.
+- It's slow. I'm cheap.
