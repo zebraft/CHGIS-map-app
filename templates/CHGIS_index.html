@@ -14,7 +14,8 @@
           background-color: #fde6cc;
           color: #333333;
           margin-left: 50px;
-          margin-right: 50px
+          margin-right: 50px;
+          margin-bottom: 50px
       }
 
       h1 {
@@ -48,6 +49,10 @@
           padding: 12x 24px;
           width: 200px;
       }
+
+      li {
+        margin-left: 50px;
+        }
   </style>
 </head>
 <body>
@@ -85,13 +90,13 @@
           In the "Place name" box, you can type individual place names (use traditional Chinese 繁體中文) or a list of places, separated by commas (regular ',' or Chinese '，').
       </p>
       <p>
-          You can specify a year in the Western calendar or leave it blank. You can also leave the place name blank to retrieve all places for a given year.
+          You can specify a year (or range of years) in the Western calendar or leave it blank. You can also leave the place name blank to retrieve all places for a given year.
       </p>
       <p>
           By default, the map will show both prefectures (<i>jun</i> 郡 and equivalent) and counties (<i>xian</i> 縣 and equivalent).
       </p>
       <p>
-          Data is from the China Historical Geographical Information System (CHGIS, v6). You can also try out their API: <a href="https://maps.cga.harvard.edu/tgaz/?">https://maps.cga.harvard.edu/tgaz/?</a>.
+          Data is from the China Historical Geographical Information System (CHGIS, v6).
       </p>
       <p>
           Scrolling over the points shows you the name of the feature and the relevant dates, along with CHGIS information about how it started and ended.
@@ -102,7 +107,11 @@
       <p>
           Nearby and overlapping points will collapse; the number shows how many there are. Click to unfold and zoom in.
       </p>
-      <p>Repository <a href="https://github.com/zebraft/CHGIS-map-app.git">here</a></p>
+      <p>Resources:</p> 
+      <li>Repository <a href="https://github.com/zebraft/CHGIS-map-app.git">for this site</a></li>
+      <li> CHGIS API: <a href="https://maps.cga.harvard.edu/tgaz/?">CHGIS</a></li>
+      <li> CHGIS <a href="https://dataverse.harvard.edu/dataverse/chgis_v6> datßa </a></li>
+      <li>another API: <a href="http://ccts.sinica.edu.tw/api/"> CCTS</a></Li>
   </div>
   </body>
   </html>
