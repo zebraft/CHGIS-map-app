@@ -15,7 +15,7 @@
           color: #333333;
           margin-left: 50px;
           margin-right: 50px;
-          margin-bottom: 50px
+          margin-bottom: 100px
       }
       .container {
     margin: 0 auto; /* Added container class */
@@ -89,34 +89,35 @@
       </div>
 
       <p>
-          If you're reading a historical text and you want to quickly see where the places mentioned therein were, here's a simple way.
+          If you're reading a historical text and you want to quickly see where the places (prefectures 郡 and counties 縣, and their administrative equivalents) mentioned therein were, here's a simple tool.
       </p>
+      <p>
+          Data is from the China Historical Geographical Information System (CHGIS, v6).
+    </p>
       <p>
           In the "Place name" box, you can type individual place names (use traditional Chinese 繁體中文) or a list of places, separated by commas (regular ',' or Chinese '，').
       </p>
       <p>
-          You can specify a year (or range of years) in the Western calendar or leave it blank. You can also leave the place name blank to retrieve all places for a given year.
+          You can specify a year (or range of years) in the Western calendar.  Or you can leave the date range blank. Likewise, you can leave the place name blank to retrieve all places for a given year.
       </p>
       <p>
-          By default, the map will show both prefectures (<i>jun</i> 郡 and equivalent) and counties (<i>xian</i> 縣 and equivalent).
+          By default, the map will show both prefectures and counties.  Untick one of the boxes to see one of those levels alone.
       </p>
       <p>
-          Data is from the China Historical Geographical Information System (CHGIS, v6).
+          Scrolling over a point will reveal the name of the feature and the relevant dates, along with CHGIS information (as available) about how it started and ended.
       </p>
       <p>
-          Scrolling over the points shows you the name of the feature and the relevant dates, along with CHGIS information about how it started and ended.
-      </p>
-      <p>
-          Clicking on a point will give you a link to a CHGIS page where you can find more information, including their discussions of the historical sources.
+          Clicking on a point will give you a link to a CHGIS page with more information, including their discussions of the historical sources.
       </p>
       <p>
           Nearby and overlapping points will collapse; the number shows how many there are. Click to unfold and zoom in.
       </p>
+      <p></p>
       <p>Resources:</p> 
-      <li>Repository <a href="https://github.com/zebraft/CHGIS-map-app.git">for this site</a></li>
-      <li>CHGIS API: <a href="https://maps.cga.harvard.edu/tgaz/?">CHGIS</a></li>
-      <li>CHGIS <a href="https://dataverse.harvard.edu/dataverse/chgis_v6">data</a></li>
-      <li>another API: <a href="http://ccts.sinica.edu.tw/api/">CCTS</a></Li>
+      <li>The <a href="https://github.com/zebraft/CHGIS-map-app.git" target="_blank">repository</a> for this site</li>
+      <li>CHGIS <a href="https://dataverse.harvard.edu/dataverse/chgis_v6" target="_blank">data</a></li>
+      <li>CHGIS <a href="https://maps.cga.harvard.edu/tgaz/?" target="_blank">API</a></li>
+      <li>An alternative API: <a href="http://ccts.sinica.edu.tw/api/" target="_blank">CCTS</a></Li>
   </div>
   </body>
   </html>
