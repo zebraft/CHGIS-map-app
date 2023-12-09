@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect
 import folium
+import xyzservices.providers as xyz
 from folium.plugins import MarkerCluster
 import re
 import pandas as pd
@@ -140,8 +141,9 @@ def generate_map(data):
     # Create a map object centered on a specific location
     center = [30.85158, 120.10989]  # Center on the first location (or 33.86989, 109.93246)
 
-    m = folium.Map(tiles='Stamen Terrain', location=center, zoom_start=6)
+    m = folium.Map(tiles='https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', location=center, zoom_start=6, attr='open topo')
     print("map generated!")
+    tile_provider = xyz.Stadia.StamenToner
 
     marker_cluster = MarkerCluster(disableClusteringAtZoom=6).add_to(m)
 
