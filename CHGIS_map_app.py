@@ -141,7 +141,12 @@ def generate_map(data):
     # Create a map object centered on a specific location
     center = [30.85158, 120.10989]  # Center on the first location (or 33.86989, 109.93246)
 
-    m = folium.Map(tiles='https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', location=center, zoom_start=6, attr='open topo')
+    #maps from https://leaflet-extras.github.io/leaflet-providers/preview/
+    #https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
+    #https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png
+    #https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}
+
+    m = folium.Map(tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', location=center, zoom_start=6, attr='leaflet maps')    
     print("map generated!")
     tile_provider = xyz.Stadia.StamenToner
 
