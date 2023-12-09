@@ -140,7 +140,7 @@ def generate_map(data):
     # Create a map object centered on a specific location
     center = [30.85158, 120.10989]  # Center on the first location (or 33.86989, 109.93246)
 
-    m = folium.Map(tiles='OpenTopoMap', location=center, zoom_start=6)
+    m = folium.Map(tiles='Stamen Terrain', location=center, zoom_start=6)
     print("map generated!")
 
     marker_cluster = MarkerCluster(disableClusteringAtZoom=6).add_to(m)
