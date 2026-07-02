@@ -27,6 +27,22 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertTrue((results['NAME_FT'] == '保德縣').any())
         self.assertTrue(((results['BEG_YR'] <= 1200) & (results['END_YR'] >= 1200)).all())
 
+    def test_filter_data_empty_query_without_date_returns_no_rows(self):
+        results = filter_data('', '', '', 'prefectures', 'counties')
+
+        self.assertTrue(results.empty)
+
+    def test_filter_data_empty_query_with_date_still_returns_date_rows(self):
+        results = filter_data('', '1200', '', '', 'counties')
+
+        self.assertFalse(results.empty)
+        self.assertTrue(((results['BEG_YR'] <= 1200) & (results['END_YR'] >= 1200)).all())
+
+    def test_filter_data_date_range_does_not_raise(self):
+        results = filter_data('保德縣', '', '1100,1300', '', 'counties')
+
+        self.assertFalse(results.empty)
+
     def test_extract_place_names_matches_simplified_to_traditional_canonical_name(self):
         results = extract_place_names('保德县在此。保德县又見。', '', 'counties')
 
@@ -129,6 +145,20 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertIn('Detected Place Names', html)
         self.assertIn('保德縣', html)
         self.assertIn('2 occurrences', html)
+
+    def test_posted_unmatched_source_text_does_not_render_all_chgis_rows(self):
+        with app.test_client() as client:
+            response = client.post('/CHGIS_map', data={
+                'place_names': '',
+                'source_text': '長安洛陽。',
+                'date': '',
+                'date_range': '',
+                'prefectures': 'prefectures',
+                'counties': 'counties',
+            })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertLess(len(response.get_data()), 200000)
 
 
 if __name__ == '__main__':

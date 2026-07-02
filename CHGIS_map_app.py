@@ -158,6 +158,10 @@ def ranges_overlap(first, second):
     return first[0] < second[1] and second[0] < first[1]
 
 
+def row_matches_place_names(place_name, query_names):
+    return isinstance(place_name, str) and any(name in place_name for name in query_names)
+
+
 def extract_place_names(source_text, prefectures='prefectures', counties='counties'):
     if not source_text:
         return []
@@ -205,6 +209,8 @@ def filter_data(place_names, date, date_range, prefectures, counties):
     # split up place names, if necessary
     place_names = split_place_names(place_names)
     if not place_names:
+        if not date and not date_range:
+            return filtered_data
         place_names = ['']
 
     # single date
@@ -214,14 +220,14 @@ def filter_data(place_names, date, date_range, prefectures, counties):
 
   
     if date_range:
-        date_group = [date.strip() for date in re.split(pattern, date_range)]
+        date_group = [date.strip() for date in re.split(r",|，", date_range)]
         begin_date = int(date_group[0])
         end_date = int(date_group[1])
 
     # Filter the prefectures data
     if prefectures:
         #filtered_prefectures = prefectures_df[prefectures_df['NAME_FT'].isin(place_names)]
-        filtered_prefectures = prefectures_df[prefectures_df['NAME_FT'].apply(lambda x: any(name in x for name in place_names))]
+        filtered_prefectures = prefectures_df[prefectures_df['NAME_FT'].apply(lambda x: row_matches_place_names(x, place_names))]
         if date or date_range:
             filtered_prefectures = filtered_prefectures[
                 (filtered_prefectures['BEG_YR'] <= end_date) & (filtered_prefectures['END_YR'] >= begin_date)
@@ -232,7 +238,7 @@ def filter_data(place_names, date, date_range, prefectures, counties):
     # Filter the counties data
     if counties:
         #filtered_counties = counties_df[counties_df['NAME_FT'].isin(place_names)]
-        filtered_counties = counties_df[counties_df['NAME_FT'].apply(lambda x: any(name in x for name in place_names))]
+        filtered_counties = counties_df[counties_df['NAME_FT'].apply(lambda x: row_matches_place_names(x, place_names))]
         if date or date_range:
             filtered_counties = filtered_counties[
                 (filtered_counties['BEG_YR'] <= end_date) & (filtered_counties['END_YR'] >= begin_date)
@@ -263,7 +269,7 @@ def tooltip_for_row(row):
 
 def marker_for_row(row):
     if pd.isna(row['Y_COOR']) or pd.isna(row['X_COOR']):
-        logger.error("Skipping row with missing coordinates: %s", row['NAME_FT'])
+        logger.warning("Skipping row with missing coordinates: %s", row['NAME_FT'])
         return None
 
     marker_args = {
@@ -340,7 +346,7 @@ def generate_map(data):
         marker = marker_for_row(row)
         if marker:
             marker_cluster.add_child(marker)
-        else:
+        elif not pd.isna(row['Y_COOR']) and not pd.isna(row['X_COOR']):
             # Log an error for unrecognized results
             logger.error(f"Unrecognized LEV_RANK value: {row['LEV_RANK']}")
         
