@@ -233,7 +233,12 @@
                         {% if place.matched_by_alias %}
                           · alias match{% if place.alias_variant_display %} {{ place.alias_variant_display }}{% endif %}
                         {% endif %}
-                        · {{ place.mapped_count }} mapped
+                        · {{ place.result_count }} date-matched record{% if place.result_count != 1 %}s{% endif %}
+                        {% if place.selected %}
+                          · on map
+                        {% else %}
+                          · not on map
+                        {% endif %}
                         {% if place.unmappable_count %}
                           · {{ place.unmappable_count }} unmappable
                         {% endif %}

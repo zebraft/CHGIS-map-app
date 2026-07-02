@@ -101,12 +101,21 @@ def chgis_map():
             submitted_selected_places,
             detected_selection_submitted,
         )
+        candidate_query_names = combine_place_names('', [place['name'] for place in matched_places])
+        candidate_data = filter_data(
+            candidate_query_names,
+            date_filter,
+            prefectures,
+            counties,
+            allow_date_only=False,
+        )
+        matched_places = annotate_matched_places(matched_places, candidate_data, selected_extracted_names)
+        matched_places = [place for place in matched_places if place['result_count'] > 0]
         query_names = combine_place_names(place_names, selected_extracted_names)
 
         # Process the user input and generate the map
         allow_date_only = not (source_text or '').strip() and not split_place_names(place_names)
         filtered_data = filter_data(query_names, date_filter, prefectures, counties, allow_date_only=allow_date_only)
-        matched_places = annotate_matched_places(matched_places, filtered_data, selected_extracted_names)
         mappable_data, unmappable_rows = split_mappable_rows(filtered_data)
 
         result_warning = result_size_warning(mappable_data, len(unmappable_rows))
