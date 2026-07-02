@@ -1,26 +1,33 @@
 from flask import Flask, render_template, request, redirect
 import folium
-import xyzservices.providers as xyz
 from folium.plugins import MarkerCluster
 import re
 import pandas as pd
 import logging
+from urllib.parse import quote
 
 
 app = Flask(__name__)
 
+CHGIS_PLACENAME_URL = 'https://chgis.hudci.org/tgaz/placename'
+MAP_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}'
+MAP_ATTRIBUTION = 'leaflet maps'
+MAP_CENTER = [30.85158, 120.10989]
+MAP_ZOOM_START = 6
+CLUSTER_DISABLE_AT_ZOOM = 13
+
 
 # Create a logger instance
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(levelname)s - %(message)s')
 
 # Create a file handler and set the formatter
-file_handler = logging.FileHandler('error.log')
-file_handler.setFormatter(formatter)
-
-# Add the file handler to the logger
-logger.addHandler(file_handler)
+if not logger.handlers:
+    file_handler = logging.FileHandler('error.log')
+    file_handler.setLevel(logging.ERROR)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
 
 # Landing page route
@@ -43,12 +50,14 @@ def chgis_map():
         prefectures = request.form.get('prefectures')
         counties = request.form.get('counties')
 
-        print("User Input:")
-        print("Place Names:", place_names)
-        print("Date:", date)
-        print("Date Range:", date_range)
-        print("Prefectures:", prefectures)
-        print("Counties:", counties)
+        logger.info(
+            "User input: place_names=%s date=%s date_range=%s prefectures=%s counties=%s",
+            place_names,
+            date,
+            date_range,
+            prefectures,
+            counties,
+        )
 
         # Process the user input and generate the map
         filtered_data = filter_data(place_names, date, date_range, prefectures, counties)
@@ -97,13 +106,6 @@ def filter_data(place_names, date, date_range, prefectures, counties):
         begin_date = int(date_group[0])
         end_date = int(date_group[1])
 
-    
-    #print(f"Date range is {begin_date} to {end_date}")
-
-    # # old way of handling dates - single date only
-    # if date:
-    #     date = int(date)
-
     # Filter the prefectures data
     if prefectures:
         #filtered_prefectures = prefectures_df[prefectures_df['NAME_FT'].isin(place_names)]
@@ -112,9 +114,8 @@ def filter_data(place_names, date, date_range, prefectures, counties):
             filtered_prefectures = filtered_prefectures[
                 (filtered_prefectures['BEG_YR'] <= end_date) & (filtered_prefectures['END_YR'] >= begin_date)
             ]
-            #print("Date processed -- prefectures!")
         filtered_data = pd.concat([filtered_data, filtered_prefectures])
-        print(f"Number of prefectures returned: {filtered_data.shape[0]}")
+        logger.info("Number of prefectures returned: %s", filtered_prefectures.shape[0])
 
     # Filter the counties data
     if counties:
@@ -124,79 +125,85 @@ def filter_data(place_names, date, date_range, prefectures, counties):
             filtered_counties = filtered_counties[
                 (filtered_counties['BEG_YR'] <= end_date) & (filtered_counties['END_YR'] >= begin_date)
             ]
-            #print("date processed - counties!")
         filtered_data = pd.concat([filtered_data, filtered_counties])
-        print(f"Number of counties returned: {filtered_data.shape[0]}")
+        logger.info("Number of counties returned: %s", filtered_counties.shape[0])
 
-    #print("Data filtered ok!")
-    #print(filtered_data)
     return filtered_data
     
 # def tooltip_maker(row)
 # not implemented -- CHGIS 'sys_id' cannot be matched with API 'hvd" ids???
 
 
+def chgis_placename_url(place_name):
+    return f"{CHGIS_PLACENAME_URL}?n={quote(str(place_name))}"
+
+
+def chgis_popup(place_name):
+    return f"<a href='{chgis_placename_url(place_name)}' target='_blank'>Link to CHGIS</a>"
+
+
+def tooltip_for_row(row):
+    if pd.isna(row['BEG_CHG_TY']):
+        return f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']} to {row['END_YR']}"
+
+    return f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']}{row['BEG_CHG_TY']}\n{row['END_YR']}{row['END_CHG_TY']}"
+
+
+def marker_for_row(row):
+    marker_args = {
+        'location': [row['Y_COOR'], row['X_COOR']],
+        'draggable': True,
+        'popup': chgis_popup(row['NAME_FT']),
+        'tooltip': tooltip_for_row(row),
+    }
+
+    if row['LEV_RANK'] == 3:
+        return folium.Marker(
+            icon=folium.Icon(icon='star', prefix='fa', color='blue'),
+            **marker_args
+        )
+
+    if row['LEV_RANK'] == 6:
+        return folium.CircleMarker(
+            radius=5,
+            color='red',
+            fill=True,
+            fill_color='red',
+            fill_opacity=1.0,
+            **marker_args
+        )
+
+    return None
+
+
 # Generate the map
 def generate_map(data):
     # Create a map object centered on a specific location
-    center = [30.85158, 120.10989]  # Center on the first location (or 33.86989, 109.93246)
 
     #maps from https://leaflet-extras.github.io/leaflet-providers/preview/
     #https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
     #https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png
     #https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}
 
-    m = folium.Map(tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', location=center, zoom_start=6, attr='leaflet maps')    
-    print("map generated!")
-    tile_provider = xyz.Stadia.StamenToner
+    m = folium.Map(tiles=MAP_TILE_URL, location=MAP_CENTER, zoom_start=MAP_ZOOM_START, attr=MAP_ATTRIBUTION)
+    logger.info("Map generated")
 
-    marker_cluster = MarkerCluster(disableClusteringAtZoom=6).add_to(m)
+    marker_cluster = MarkerCluster(
+        disableClusteringAtZoom=CLUSTER_DISABLE_AT_ZOOM,
+        spiderfyOnMaxZoom=True,
+        showCoverageOnHover=False,
+        maxClusterRadius=35,
+    ).add_to(m)
 
     # Add markers for each place
     for index, row in data.iterrows():
 
-        # make tooltip, avoiding 'isna'
-        if pd.isna(row['BEG_CHG_TY']):
-            tooltip = f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']} to {row['END_YR']}"
-            #print("IT'S TRUE!!!")
-        else:
-            #print(row['BEG_CHG_TY'])
-            tooltip = f"<div style='font-size: 20px;'>{row['NAME_FT']}\n{row['BEG_YR']}{row['BEG_CHG_TY']}\n{row['END_YR']}{row['END_CHG_TY']}"
-        
-        #prefectures (LEV_RANK 3)
-        if row['LEV_RANK'] == 3:  
-            # Add a star marker for prefectures
-            marker = folium.Marker(
-                location=[row['Y_COOR'], row['X_COOR']],
-                icon=folium.Icon(icon='star', prefix='fa', color='blue'),
-                draggable=True,
-                popup = f"<a href='https://maps.cga.harvard.edu/tgaz/placename?n={row['NAME_FT']}' target='_blank'>Link to CHGIS</a>",
-                tooltip=tooltip
-                )
+        marker = marker_for_row(row)
+        if marker:
             marker_cluster.add_child(marker)
-            #print("Added prefecture!")
-        
-        # counties
-        elif row['LEV_RANK'] == 6: 
-            # Add a circle marker for counties
-            marker = folium.CircleMarker(
-                location=[row['Y_COOR'], row['X_COOR']],
-                radius=5,
-                color='red',
-                fill=True,
-                fill_color='red',
-                fill_opacity=1.0,
-                draggable=True,
-                popup = f"<a href='https://maps.cga.harvard.edu/tgaz/placename?n={row['NAME_FT']}' target='_blank'>Link to CHGIS</a>",
-                tooltip=tooltip
-                )
-            marker_cluster.add_child(marker)
-            #print("Added county!")
-
         else:
             # Log an error for unrecognized results
             logger.error(f"Unrecognized LEV_RANK value: {row['LEV_RANK']}")
-            print(f"Level Rank wrong for {row}!")
         
     m.add_child(marker_cluster)
 
@@ -208,4 +215,3 @@ def generate_map(data):
 
 if __name__ == "__main__":
     app.run(debug=True)
-
