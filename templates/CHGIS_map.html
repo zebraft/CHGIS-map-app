@@ -269,6 +269,8 @@
     </aside>
   </div>
   <script>
+    let updateMapTimer = null;
+
     function updateSourceHighlights() {
       const selected = new Set(
         Array.from(document.querySelectorAll('.place-toggle:checked')).map((input) => input.value)
@@ -280,8 +282,19 @@
       });
     }
 
+    function scheduleMapUpdate(input) {
+      const form = input.closest('form');
+      window.clearTimeout(updateMapTimer);
+      updateMapTimer = window.setTimeout(() => {
+        form.submit();
+      }, 450);
+    }
+
     document.querySelectorAll('.place-toggle').forEach((input) => {
-      input.addEventListener('change', updateSourceHighlights);
+      input.addEventListener('change', () => {
+        updateSourceHighlights();
+        scheduleMapUpdate(input);
+      });
     });
     updateSourceHighlights();
   </script>

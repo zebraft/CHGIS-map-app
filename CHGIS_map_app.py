@@ -40,6 +40,7 @@ ADMIN_SUFFIXES = (
     '衛',
     '卫',
 )
+REIGN_YEAR_PATTERN = re.compile(r"^[0-9〇零一二三四五六七八九十百廿卅元]+年")
 
 
 # Create a logger instance
@@ -103,7 +104,8 @@ def chgis_map():
         query_names = combine_place_names(place_names, selected_extracted_names)
 
         # Process the user input and generate the map
-        filtered_data = filter_data(query_names, date_filter, prefectures, counties)
+        allow_date_only = not (source_text or '').strip() and not split_place_names(place_names)
+        filtered_data = filter_data(query_names, date_filter, prefectures, counties, allow_date_only=allow_date_only)
         matched_places = annotate_matched_places(matched_places, filtered_data, selected_extracted_names)
         mappable_data, unmappable_rows = split_mappable_rows(filtered_data)
 
@@ -232,6 +234,8 @@ def highlighted_source_text(source_text, matched_places):
     for variant in variants:
         for match in re.finditer(re.escape(variant), source_text):
             match_range = match.span()
+            if followed_by_reign_year(source_text, match_range[1]):
+                continue
             if any(ranges_overlap(match_range, occupied) for occupied in occupied_ranges):
                 continue
             occupied_ranges.append(match_range)
@@ -330,6 +334,10 @@ def ranges_overlap(first, second):
     return first[0] < second[1] and second[0] < first[1]
 
 
+def followed_by_reign_year(source_text, end_index):
+    return bool(REIGN_YEAR_PATTERN.match(source_text[end_index:]))
+
+
 def row_matches_place_names(place_name, query_names):
     return isinstance(place_name, str) and any(name in place_name for name in query_names)
 
@@ -346,6 +354,8 @@ def extract_place_names(source_text, prefectures='prefectures', counties='counti
         variant = entry['variant']
         for match in re.finditer(re.escape(variant), source_text):
             match_range = match.span()
+            if followed_by_reign_year(source_text, match_range[1]):
+                continue
             if any(ranges_overlap(match_range, occupied) for occupied in occupied_ranges):
                 continue
 
@@ -382,13 +392,13 @@ def extract_place_names(source_text, prefectures='prefectures', counties='counti
     return sorted(matched_places, key=lambda place: (-place['count'], place['name']))
 
 # Process user input and filter the data
-def filter_data(place_names, date_filter=None, prefectures=None, counties=None):
+def filter_data(place_names, date_filter=None, prefectures=None, counties=None, allow_date_only=True):
     filtered_data = pd.DataFrame()  # Create an empty DataFrame for the filtered data
 
     # split up place names, if necessary
     place_names = split_place_names(place_names)
     if not place_names:
-        if not date_filter:
+        if not date_filter or not allow_date_only:
             return filtered_data
         place_names = ['']
 
@@ -462,10 +472,10 @@ def annotate_matched_places(matched_places, filtered_data, selected_names):
     for place in matched_places:
         name = place['name']
         annotated_place = dict(place)
-        annotated_place['selected'] = name in selected_name_set
         annotated_place['result_count'] = int(result_counts.get(name, 0))
         annotated_place['mapped_count'] = int(mapped_counts.get(name, 0))
         annotated_place['unmappable_count'] = int(unmappable_counts.get(name, 0))
+        annotated_place['selected'] = name in selected_name_set and annotated_place['result_count'] > 0
         annotated_places.append(annotated_place)
 
     return annotated_places
