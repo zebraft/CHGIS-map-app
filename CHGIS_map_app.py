@@ -21,6 +21,24 @@ CLUSTER_DISABLE_AT_ZOOM = 13
 MAP_MAX_ZOOM = CLUSTER_DISABLE_AT_ZOOM
 MIN_TEXT_MATCH_LENGTH = 2
 MAX_RENDER_ROWS = 1000
+ADMIN_SUFFIXES = (
+    '直隸州',
+    '長官司',
+    '侯國',
+    '郡',
+    '縣',
+    '县',
+    '州',
+    '國',
+    '国',
+    '軍',
+    '军',
+    '府',
+    '廳',
+    '厅',
+    '衛',
+    '卫',
+)
 
 
 # Create a logger instance
@@ -185,7 +203,13 @@ def selected_detected_names(matched_places, submitted_selected_places, detected_
         selected_names = set(submitted_selected_places)
         return [name for name in matched_names if name in selected_names]
 
-    return matched_names
+    return [place['name'] for place in matched_places if not alias_only_match(place)]
+
+
+def alias_only_match(place):
+    variants = set(place.get('variants', []))
+    alias_variants = set(place.get('alias_variants', []))
+    return bool(alias_variants) and variants == alias_variants
 
 
 @lru_cache(maxsize=4)
@@ -198,28 +222,57 @@ def gazetteer_entries(prefectures, counties):
             if not isinstance(canonical_name, str) or not canonical_name.strip():
                 continue
 
-            for column in ('NAME_FT', 'NAME_CH'):
-                variant = row.get(column)
-                if not isinstance(variant, str):
-                    continue
-
-                variant = variant.strip()
-                if len(variant) < MIN_TEXT_MATCH_LENGTH:
-                    continue
-
+            for variant, is_alias in place_name_variants(row):
                 entry = entries_by_variant.setdefault(
                     variant,
                     {
                         'variant': variant,
                         'names': set(),
+                        'alias_names': set(),
                     },
                 )
                 entry['names'].add(canonical_name.strip())
+                if is_alias:
+                    entry['alias_names'].add(canonical_name.strip())
 
     return sorted(
         entries_by_variant.values(),
         key=lambda entry: (-len(entry['variant']), entry['variant']),
     )
+
+
+def place_name_variants(row):
+    variants = []
+    seen_variants = set()
+
+    for column in ('NAME_FT', 'NAME_CH'):
+        variant = row.get(column)
+        if not isinstance(variant, str):
+            continue
+
+        variant = variant.strip()
+        if len(variant) < MIN_TEXT_MATCH_LENGTH:
+            continue
+
+        if variant not in seen_variants:
+            variants.append((variant, False))
+            seen_variants.add(variant)
+
+        alias = short_alias(variant)
+        if alias and alias not in seen_variants:
+            variants.append((alias, True))
+            seen_variants.add(alias)
+
+    return variants
+
+
+def short_alias(place_name):
+    for suffix in ADMIN_SUFFIXES:
+        if place_name.endswith(suffix):
+            alias = place_name[:-len(suffix)].strip()
+            if len(alias) >= MIN_TEXT_MATCH_LENGTH:
+                return alias
+    return None
 
 
 def ranges_overlap(first, second):
@@ -252,19 +305,26 @@ def extract_place_names(source_text, prefectures='prefectures', counties='counti
                     {
                         'name': name,
                         'variants': set(),
+                        'alias_variants': set(),
                         'count': 0,
                     },
                 )
                 match_record['variants'].add(variant)
+                if name in entry['alias_names']:
+                    match_record['alias_variants'].add(variant)
                 match_record['count'] += 1
 
     matched_places = []
     for match_record in matches_by_name.values():
         variants = sorted(match_record['variants'])
+        alias_variants = sorted(match_record['alias_variants'])
         matched_places.append({
             'name': match_record['name'],
             'variants': variants,
+            'alias_variants': alias_variants,
             'variant_display': "，".join(variants),
+            'alias_variant_display': "，".join(alias_variants),
+            'matched_by_alias': bool(alias_variants),
             'count': match_record['count'],
         })
 

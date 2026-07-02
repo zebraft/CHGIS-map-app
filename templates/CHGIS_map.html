@@ -201,6 +201,9 @@
                         {% if place.variant_display and place.variant_display != place.name %}
                           · matched {{ place.variant_display }}
                         {% endif %}
+                        {% if place.matched_by_alias %}
+                          · alias match{% if place.alias_variant_display %} {{ place.alias_variant_display }}{% endif %}
+                        {% endif %}
                         · {{ place.mapped_count }} mapped
                         {% if place.unmappable_count %}
                           · {{ place.unmappable_count }} unmappable

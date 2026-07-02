@@ -3,6 +3,7 @@ import unittest
 import pandas as pd
 
 from CHGIS_map_app import (
+    alias_only_match,
     app,
     chgis_placename_url,
     combine_place_names,
@@ -10,6 +11,7 @@ from CHGIS_map_app import (
     filter_data,
     generate_map,
     marker_for_row,
+    short_alias,
 )
 
 
@@ -21,25 +23,25 @@ class ChgisMapAppTest(unittest.TestCase):
         )
 
     def test_filter_data_matches_county_by_name_and_date(self):
-        results = filter_data('保德縣', '1200', '', '', 'counties')
+        results = filter_data('保德縣', (1200, 1200), '', 'counties')
 
         self.assertFalse(results.empty)
         self.assertTrue((results['NAME_FT'] == '保德縣').any())
         self.assertTrue(((results['BEG_YR'] <= 1200) & (results['END_YR'] >= 1200)).all())
 
     def test_filter_data_empty_query_without_date_returns_no_rows(self):
-        results = filter_data('', '', '', 'prefectures', 'counties')
+        results = filter_data('', None, 'prefectures', 'counties')
 
         self.assertTrue(results.empty)
 
     def test_filter_data_empty_query_with_date_still_returns_date_rows(self):
-        results = filter_data('', '1200', '', '', 'counties')
+        results = filter_data('', (1200, 1200), '', 'counties')
 
         self.assertFalse(results.empty)
         self.assertTrue(((results['BEG_YR'] <= 1200) & (results['END_YR'] >= 1200)).all())
 
     def test_filter_data_date_range_does_not_raise(self):
-        results = filter_data('保德縣', '', '1100,1300', '', 'counties')
+        results = filter_data('保德縣', (1100, 1300), '', 'counties')
 
         self.assertFalse(results.empty)
 
@@ -55,6 +57,20 @@ class ChgisMapAppTest(unittest.TestCase):
         result_names = [result['name'] for result in results]
 
         self.assertIn('晉陽縣', result_names)
+
+    def test_short_alias_strips_common_admin_suffixes(self):
+        self.assertEqual(short_alias('東莞郡'), '東莞')
+        self.assertEqual(short_alias('東莞縣'), '東莞')
+
+    def test_extract_place_names_matches_short_admin_aliases(self):
+        text = '東莞劉穆之，字道和，小字道人。世居京口。'
+        results = extract_place_names(text, 'prefectures', 'counties')
+        result_names = {result['name'] for result in results}
+
+        self.assertIn('東莞郡', result_names)
+        self.assertIn('東莞縣', result_names)
+        self.assertTrue(any(result['matched_by_alias'] for result in results if result['name'].startswith('東莞')))
+        self.assertTrue(any(alias_only_match(result) for result in results if result['name'].startswith('東莞')))
 
     def test_combine_place_names_deduplicates_manual_and_extracted_names(self):
         self.assertEqual(
@@ -94,7 +110,7 @@ class ChgisMapAppTest(unittest.TestCase):
 
         self.assertIsNone(marker_for_row(row))
 
-    def test_generate_map_keeps_overlapping_points_clustered_until_deep_zoom(self):
+    def test_generate_map_groups_overlapping_points_in_one_popup(self):
         rows = pd.DataFrame([
             {
                 'NAME_FT': '晋阳',
@@ -120,14 +136,13 @@ class ChgisMapAppTest(unittest.TestCase):
 
         html = generate_map(rows).get_root().render()
 
-        self.assertIn('"disableClusteringAtZoom": 13', html)
-        self.assertIn('"spiderfyOnMaxZoom": true', html)
-        self.assertIn('"zoomToBoundsOnClick": false', html)
-        self.assertIn('"maxClusterRadius": 35', html)
-        self.assertIn('"maxZoom": 13', html)
+        self.assertIn('2 CHGIS records at this location', html)
+        self.assertIn('晋阳', html)
+        self.assertIn('晋阳县', html)
         self.assertIn('World_Shaded_Relief', html)
-        self.assertIn(".on('clusterclick'", html)
-        self.assertIn('event.layer.spiderfy();', html)
+        self.assertIn('"maxZoom": 13', html)
+        self.assertIn('"zoomToBoundsOnClick": false', html)
+        self.assertIn('World_Shaded_Relief', html)
 
     def test_posted_source_text_renders_detected_place_list(self):
         with app.test_client() as client:
@@ -145,6 +160,59 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertIn('Detected Place Names', html)
         self.assertIn('保德縣', html)
         self.assertIn('2 occurrences', html)
+        self.assertIn('1 mapped', html)
+
+    def test_posted_source_text_can_deselect_all_detected_places(self):
+        with app.test_client() as client:
+            response = client.post('/CHGIS_map', data={
+                'place_names': '',
+                'source_text': '保德县在此。',
+                'date': '',
+                'date_range': '',
+                'counties': 'counties',
+                'detected_selection_submitted': '1',
+            })
+
+        html = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('保德縣', html)
+        self.assertIn('0 mapped', html)
+
+    def test_posted_alias_matches_are_candidates_but_not_mapped_by_default(self):
+        with app.test_client() as client:
+            response = client.post('/CHGIS_map', data={
+                'place_names': '',
+                'source_text': '東莞劉穆之，字道和，小字道人。世居京口。',
+                'date': '',
+                'date_range': '',
+                'prefectures': 'prefectures',
+                'counties': 'counties',
+            })
+
+        html = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('東莞郡', html)
+        self.assertIn('alias match 東莞', html)
+        self.assertIn('0 mapped', html)
+        self.assertIn('value="東莞郡" >', html)
+
+    def test_invalid_date_renders_search_error(self):
+        with app.test_client() as client:
+            response = client.post('/CHGIS_map', data={
+                'place_names': '保德縣',
+                'source_text': '',
+                'date': 'twelve hundred',
+                'date_range': '',
+                'counties': 'counties',
+            })
+
+        html = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Date must be a whole year', html)
+        self.assertIn('twelve hundred', html)
 
     def test_posted_unmatched_source_text_does_not_render_all_chgis_rows(self):
         with app.test_client() as client:
@@ -159,6 +227,22 @@ class ChgisMapAppTest(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertLess(len(response.get_data()), 200000)
+
+    def test_date_only_large_results_show_warning_and_are_capped(self):
+        with app.test_client() as client:
+            response = client.post('/CHGIS_map', data={
+                'place_names': '',
+                'source_text': '',
+                'date': '1200',
+                'date_range': '',
+                'prefectures': 'prefectures',
+                'counties': 'counties',
+            })
+
+        html = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('showing the first 1000', html)
 
 
 if __name__ == '__main__':
