@@ -10,6 +10,7 @@ from CHGIS_map_app import (
     extract_place_names,
     filter_data,
     generate_map,
+    highlighted_source_text,
     marker_for_row,
     short_alias,
 )
@@ -71,6 +72,15 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertIn('東莞縣', result_names)
         self.assertTrue(any(result['matched_by_alias'] for result in results if result['name'].startswith('東莞')))
         self.assertTrue(any(alias_only_match(result) for result in results if result['name'].startswith('東莞')))
+
+    def test_highlighted_source_text_marks_detected_variants(self):
+        text = '東莞劉穆之，字道和，小字道人。'
+        matches = extract_place_names(text, 'prefectures', 'counties')
+        html = str(highlighted_source_text(text, matches))
+
+        self.assertIn("class='source-place'", html)
+        self.assertIn("data-place-names='東莞侯國|東莞縣|東莞郡'", html)
+        self.assertIn('>東莞</mark>', html)
 
     def test_combine_place_names_deduplicates_manual_and_extracted_names(self):
         self.assertEqual(
@@ -137,6 +147,8 @@ class ChgisMapAppTest(unittest.TestCase):
         html = generate_map(rows).get_root().render()
 
         self.assertIn('2 CHGIS records at this location', html)
+        self.assertIn('<table', html)
+        self.assertIn('min-width:420px', html)
         self.assertIn('晋阳', html)
         self.assertIn('晋阳县', html)
         self.assertIn('World_Shaded_Relief', html)
@@ -158,6 +170,9 @@ class ChgisMapAppTest(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn('Detected Place Names', html)
+        self.assertIn('<h2>Passage</h2>', html)
+        self.assertIn('source-place', html)
+        self.assertIn('place-toggle', html)
         self.assertIn('保德縣', html)
         self.assertIn('2 occurrences', html)
         self.assertIn('1 mapped', html)

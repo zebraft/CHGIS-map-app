@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 import folium
 from branca.element import MacroElement, Template
 from folium.plugins import MarkerCluster
+from markupsafe import Markup
 import re
 import pandas as pd
 import logging
@@ -118,6 +119,7 @@ def chgis_map():
         template_data = {
             'map_data': map_html,
             'matched_places': matched_places,
+            'highlighted_source_text': highlighted_source_text(source_text, matched_places),
             'unmappable_places': rows_to_place_records(unmappable_rows),
             'result_warning': result_warning,
             'form_data': request.form,
@@ -210,6 +212,55 @@ def alias_only_match(place):
     variants = set(place.get('variants', []))
     alias_variants = set(place.get('alias_variants', []))
     return bool(alias_variants) and variants == alias_variants
+
+
+def highlighted_source_text(source_text, matched_places):
+    if not source_text:
+        return ''
+
+    variant_places = {}
+    for place in matched_places:
+        for variant in place.get('variants', []):
+            variant_places.setdefault(variant, set()).add(place['name'])
+
+    if not variant_places:
+        return escape(source_text)
+
+    matches = []
+    occupied_ranges = []
+    variants = sorted(variant_places.keys(), key=lambda variant: (-len(variant), variant))
+    for variant in variants:
+        for match in re.finditer(re.escape(variant), source_text):
+            match_range = match.span()
+            if any(ranges_overlap(match_range, occupied) for occupied in occupied_ranges):
+                continue
+            occupied_ranges.append(match_range)
+            matches.append({
+                'start': match_range[0],
+                'end': match_range[1],
+                'variant': variant,
+                'places': sorted(variant_places[variant]),
+            })
+
+    if not matches:
+        return escape(source_text)
+
+    chunks = []
+    cursor = 0
+    for match in sorted(matches, key=lambda item: item['start']):
+        chunks.append(escape(source_text[cursor:match['start']]))
+        place_names = "|".join(match['places'])
+        chunks.append(
+            "<mark class='source-place' data-place-names='"
+            + escape(place_names, quote=True)
+            + "'>"
+            + escape(source_text[match['start']:match['end']])
+            + "</mark>"
+        )
+        cursor = match['end']
+    chunks.append(escape(source_text[cursor:]))
+
+    return Markup("".join(chunks))
 
 
 @lru_cache(maxsize=4)
@@ -531,23 +582,26 @@ def grouped_location_records(data):
 
 
 def grouped_popup(records):
-    items = []
+    rows = []
     for row in sorted(records, key=lambda item: (str(item.get('NAME_FT')), item.get('BEG_YR', 0), item.get('END_YR', 0))):
         name = escape(str(row.get('NAME_FT', '')))
         record_type = escape(str(type_label(row)))
         years = escape(str(date_label(row)))
         url = escape(chgis_placename_url(row.get('NAME_FT', '')), quote=True)
-        items.append(
-            f"<li><a href='{url}' target='_blank'>{name}</a>"
-            f"<span style='display:block;color:#555;font-size:12px;'>{record_type} {years}</span></li>"
+        rows.append(
+            "<tr>"
+            f"<td style='padding:4px 12px 4px 0;white-space:nowrap;'><a href='{url}' target='_blank'>{name}</a></td>"
+            f"<td style='padding:4px 12px 4px 0;color:#555;white-space:nowrap;'>{record_type}</td>"
+            f"<td style='padding:4px 0;color:#555;white-space:nowrap;'>{years}</td>"
+            "</tr>"
         )
 
     return (
-        "<div style='font-size:14px;max-width:280px;'>"
+        "<div style='font-size:14px;min-width:420px;max-width:620px;'>"
         f"<strong>{len(records)} CHGIS record{'s' if len(records) != 1 else ''} at this location</strong>"
-        "<ul style='margin:8px 0 0 18px;padding:0;'>"
-        + "".join(items)
-        + "</ul></div>"
+        "<table style='border-collapse:collapse;margin-top:8px;width:100%;'>"
+        + "".join(rows)
+        + "</table></div>"
     )
 
 
@@ -571,7 +625,7 @@ def marker_for_group(location, records):
     return folium.Marker(
         location=list(location),
         icon=marker_icon_for_group(records),
-        popup=grouped_popup(records),
+        popup=folium.Popup(grouped_popup(records), max_width=660),
         tooltip=grouped_tooltip(records),
     )
 
