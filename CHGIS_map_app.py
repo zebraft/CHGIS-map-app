@@ -10,11 +10,12 @@ from urllib.parse import quote
 app = Flask(__name__)
 
 CHGIS_PLACENAME_URL = 'https://chgis.hudci.org/tgaz/placename'
-MAP_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}'
-MAP_ATTRIBUTION = 'leaflet maps'
+MAP_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
+MAP_ATTRIBUTION = 'Tiles &copy; Esri'
 MAP_CENTER = [30.85158, 120.10989]
 MAP_ZOOM_START = 6
 CLUSTER_DISABLE_AT_ZOOM = 13
+MAP_MAX_ZOOM = CLUSTER_DISABLE_AT_ZOOM
 
 
 # Create a logger instance
@@ -183,9 +184,15 @@ def generate_map(data):
     #maps from https://leaflet-extras.github.io/leaflet-providers/preview/
     #https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
     #https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png
-    #https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}
+    #https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
 
-    m = folium.Map(tiles=MAP_TILE_URL, location=MAP_CENTER, zoom_start=MAP_ZOOM_START, attr=MAP_ATTRIBUTION)
+    m = folium.Map(
+        tiles=MAP_TILE_URL,
+        location=MAP_CENTER,
+        zoom_start=MAP_ZOOM_START,
+        max_zoom=MAP_MAX_ZOOM,
+        attr=MAP_ATTRIBUTION,
+    )
     logger.info("Map generated")
 
     marker_cluster = MarkerCluster(

@@ -71,6 +71,8 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertIn('"disableClusteringAtZoom": 13', html)
         self.assertIn('"spiderfyOnMaxZoom": true', html)
         self.assertIn('"maxClusterRadius": 35', html)
+        self.assertIn('"maxZoom": 13', html)
+        self.assertIn('World_Topo_Map', html)
 
 
 if __name__ == '__main__':
