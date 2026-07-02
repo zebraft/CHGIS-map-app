@@ -70,9 +70,12 @@ class ChgisMapAppTest(unittest.TestCase):
 
         self.assertIn('"disableClusteringAtZoom": 13', html)
         self.assertIn('"spiderfyOnMaxZoom": true', html)
+        self.assertIn('"zoomToBoundsOnClick": false', html)
         self.assertIn('"maxClusterRadius": 35', html)
         self.assertIn('"maxZoom": 13', html)
-        self.assertIn('World_Topo_Map', html)
+        self.assertIn('World_Shaded_Relief', html)
+        self.assertIn(".on('clusterclick'", html)
+        self.assertIn('event.layer.spiderfy();', html)
 
 
 if __name__ == '__main__':

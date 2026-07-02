@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect
 import folium
+from branca.element import MacroElement, Template
 from folium.plugins import MarkerCluster
 import re
 import pandas as pd
@@ -10,7 +11,7 @@ from urllib.parse import quote
 app = Flask(__name__)
 
 CHGIS_PLACENAME_URL = 'https://chgis.hudci.org/tgaz/placename'
-MAP_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
+MAP_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}'
 MAP_ATTRIBUTION = 'Tiles &copy; Esri'
 MAP_CENTER = [30.85158, 120.10989]
 MAP_ZOOM_START = 6
@@ -177,6 +178,21 @@ def marker_for_row(row):
     return None
 
 
+class ClusterClickSpiderfy(MacroElement):
+    _template = Template("""
+        {% macro script(this, kwargs) %}
+            {{ this.cluster_name }}.on('clusterclick', function(event) {
+                event.layer.spiderfy();
+            });
+        {% endmacro %}
+    """)
+
+    def __init__(self, marker_cluster):
+        super().__init__()
+        self._name = 'ClusterClickSpiderfy'
+        self.cluster_name = marker_cluster.get_name()
+
+
 # Generate the map
 def generate_map(data):
     # Create a map object centered on a specific location
@@ -184,7 +200,7 @@ def generate_map(data):
     #maps from https://leaflet-extras.github.io/leaflet-providers/preview/
     #https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
     #https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png
-    #https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+    #https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}
 
     m = folium.Map(
         tiles=MAP_TILE_URL,
@@ -198,9 +214,11 @@ def generate_map(data):
     marker_cluster = MarkerCluster(
         disableClusteringAtZoom=CLUSTER_DISABLE_AT_ZOOM,
         spiderfyOnMaxZoom=True,
+        zoomToBoundsOnClick=False,
         showCoverageOnHover=False,
         maxClusterRadius=35,
     ).add_to(m)
+    m.add_child(ClusterClickSpiderfy(marker_cluster))
 
     # Add markers for each place
     for index, row in data.iterrows():
