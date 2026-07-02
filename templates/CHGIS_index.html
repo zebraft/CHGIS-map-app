@@ -53,7 +53,7 @@
           font-family: Arial, sans-serif;
           font-size: 16px;
           line-height: 1.4;
-          min-height: 160px;
+          min-height: 96px;
           padding: 13px;
           width: 100%;
           margin-bottom: 15px;
@@ -66,6 +66,16 @@
           width: 200px;
       }
 
+      .error-message {
+          background: #fff3f0;
+          border: 1px solid #d46a5f;
+          color: #7a2f28;
+          font-size: 16px;
+          line-height: 1.4;
+          margin-bottom: 18px;
+          padding: 12px;
+      }
+
       li {
         margin-left: 50px;
         }
@@ -76,24 +86,27 @@
       <h1>Simple CHGIS Map</h1>
 
       <div class="form-section">
+          {% if error_message %}
+              <div class="error-message">{{ error_message }}</div>
+          {% endif %}
           <form action="/CHGIS_map" method="POST">
               <label for="place_names">Place Names:</label>
-              <input type="text" id="place_names" name="place_names" placeholder="Enter place names">
+              <input type="text" id="place_names" name="place_names" placeholder="Enter place names" value="{{ form_data.get('place_names', '') }}">
               <br>
               <label for="source_text">Text to scan for place names:</label>
-              <textarea id="source_text" name="source_text" placeholder="Paste text here"></textarea>
+              <textarea id="source_text" name="source_text" placeholder="Paste text here">{{ form_data.get('source_text', '') }}</textarea>
               <br>
               <label for="date">Date:</label>
-              <input type="text" id="date" name="date" placeholder="Enter a date">
+              <input type="text" id="date" name="date" placeholder="Enter a date" value="{{ form_data.get('date', '') }}">
               <br>
               <span style="padding-left: 20px;">OR</span>
               <label for="date_range">provide a Date Range, separated by a comma:</label>
-              <input type="text" id="date_range" name="date_range" placeholder="Begin,End">
+              <input type="text" id="date_range" name="date_range" placeholder="Begin,End" value="{{ form_data.get('date_range', '') }}">
               <br>
               <label for="search_type">Search Type:</label>
-              <input type="checkbox" id="prefectures" name="prefectures" value="prefectures" checked>
+              <input type="checkbox" id="prefectures" name="prefectures" value="prefectures" {% if not form_data or form_data.get('prefectures') %}checked{% endif %}>
               <label for="prefectures">Prefectures</label>
-              <input type="checkbox" id="counties" name="counties" value="counties" checked>
+              <input type="checkbox" id="counties" name="counties" value="counties" {% if not form_data or form_data.get('counties') %}checked{% endif %}>
               <label for="counties">Counties</label>
               <br>
               <div class="generate-button">

@@ -43,6 +43,42 @@
       margin: 0 0 14px;
     }
 
+    .panel-section {
+      border-bottom: 1px solid #eadcc8;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+    }
+
+    .panel-section:last-child {
+      border-bottom: 0;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .panel-button {
+      background: #333333;
+      border: 0;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 12px;
+      padding: 8px 12px;
+    }
+
+    .secondary-button {
+      background: #6b6257;
+    }
+
+    .result-warning {
+      background: #fff3d6;
+      border: 1px solid #d2a84c;
+      color: #5f4511;
+      font-size: 14px;
+      line-height: 1.4;
+      margin: 0 0 16px;
+      padding: 10px;
+    }
+
     .matched-place-list {
       list-style: none;
       margin: 0;
@@ -52,6 +88,13 @@
     .matched-place {
       border-bottom: 1px solid #eadcc8;
       padding: 10px 0;
+    }
+
+    .matched-place label {
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr);
+      gap: 8px;
     }
 
     .matched-place-name {
@@ -73,6 +116,17 @@
       font-size: 14px;
       line-height: 1.5;
       margin: 0;
+    }
+
+    .unmappable-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .unmappable-list li {
+      font-size: 14px;
+      line-height: 1.4;
+      margin-bottom: 8px;
     }
 
     @media (max-width: 800px) {
@@ -100,23 +154,85 @@
       {{ map_data|safe }}
     </div>
     <aside class="results-panel">
-      <h2>Detected Place Names</h2>
-      {% if matched_places %}
-        <ul class="matched-place-list">
-          {% for place in matched_places %}
-            <li class="matched-place">
-              <span class="matched-place-name">{{ place.name }}</span>
-              <span class="matched-place-meta">
-                {{ place.count }} occurrence{% if place.count != 1 %}s{% endif %}
-                {% if place.variant_display and place.variant_display != place.name %}
-                  · matched {{ place.variant_display }}
-                {% endif %}
-              </span>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="empty-results">No place names were detected from pasted text.</p>
+      {% if result_warning %}
+        <div class="result-warning">{{ result_warning }}</div>
+      {% endif %}
+
+      <section class="panel-section">
+        <form action="/" method="POST">
+          <input type="hidden" name="place_names" value="{{ form_data.get('place_names', '') }}">
+          <input type="hidden" name="source_text" value="{{ form_data.get('source_text', '') }}">
+          <input type="hidden" name="date" value="{{ form_data.get('date', '') }}">
+          <input type="hidden" name="date_range" value="{{ form_data.get('date_range', '') }}">
+          {% if form_data.get('prefectures') %}
+            <input type="hidden" name="prefectures" value="prefectures">
+          {% endif %}
+          {% if form_data.get('counties') %}
+            <input type="hidden" name="counties" value="counties">
+          {% endif %}
+          <button class="panel-button secondary-button" type="submit">Revise Search</button>
+        </form>
+      </section>
+
+      <section class="panel-section">
+        <h2>Detected Place Names</h2>
+        {% if matched_places %}
+          <form action="/CHGIS_map" method="POST">
+            <input type="hidden" name="place_names" value="{{ form_data.get('place_names', '') }}">
+            <input type="hidden" name="source_text" value="{{ form_data.get('source_text', '') }}">
+            <input type="hidden" name="date" value="{{ form_data.get('date', '') }}">
+            <input type="hidden" name="date_range" value="{{ form_data.get('date_range', '') }}">
+            <input type="hidden" name="detected_selection_submitted" value="1">
+            {% if form_data.get('prefectures') %}
+              <input type="hidden" name="prefectures" value="prefectures">
+            {% endif %}
+            {% if form_data.get('counties') %}
+              <input type="hidden" name="counties" value="counties">
+            {% endif %}
+            <ul class="matched-place-list">
+              {% for place in matched_places %}
+                <li class="matched-place">
+                  <label>
+                    <input type="checkbox" name="selected_places" value="{{ place.name }}" {% if place.selected %}checked{% endif %}>
+                    <span>
+                      <span class="matched-place-name">{{ place.name }}</span>
+                      <span class="matched-place-meta">
+                        {{ place.count }} occurrence{% if place.count != 1 %}s{% endif %}
+                        {% if place.variant_display and place.variant_display != place.name %}
+                          · matched {{ place.variant_display }}
+                        {% endif %}
+                        · {{ place.mapped_count }} mapped
+                        {% if place.unmappable_count %}
+                          · {{ place.unmappable_count }} unmappable
+                        {% endif %}
+                        {% if place.result_count == 0 %}
+                          · no CHGIS rows for current filters
+                        {% endif %}
+                      </span>
+                    </span>
+                  </label>
+                </li>
+              {% endfor %}
+            </ul>
+            <button class="panel-button" type="submit">Update Map</button>
+          </form>
+        {% else %}
+          <p class="empty-results">No place names were detected from pasted text.</p>
+        {% endif %}
+      </section>
+
+      {% if unmappable_places %}
+        <section class="panel-section">
+          <h2>Unmappable Records</h2>
+          <ol class="unmappable-list">
+            {% for place in unmappable_places %}
+              <li>
+                <a href="{{ place.url }}" target="_blank">{{ place.name }}</a>
+                <span class="matched-place-meta">{{ place.type }} {{ place.begin_year }}-{{ place.end_year }}</span>
+              </li>
+            {% endfor %}
+          </ol>
+        </section>
       {% endif %}
     </aside>
   </div>
