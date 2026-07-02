@@ -48,6 +48,17 @@
           margin-bottom: 15px;
       }
 
+      .form-section textarea {
+          box-sizing: border-box;
+          font-family: Arial, sans-serif;
+          font-size: 16px;
+          line-height: 1.4;
+          min-height: 160px;
+          padding: 13px;
+          width: 100%;
+          margin-bottom: 15px;
+      }
+
       .form-section .generate-button input[type="submit"] {
           font-size: 18px;
           margin-top: 15px;
@@ -68,6 +79,9 @@
           <form action="/CHGIS_map" method="POST">
               <label for="place_names">Place Names:</label>
               <input type="text" id="place_names" name="place_names" placeholder="Enter place names">
+              <br>
+              <label for="source_text">Text to scan for place names:</label>
+              <textarea id="source_text" name="source_text" placeholder="Paste text here"></textarea>
               <br>
               <label for="date">Date:</label>
               <input type="text" id="date" name="date" placeholder="Enter a date">
@@ -96,6 +110,9 @@
     </p>
       <p>
           In the "Place name" box, you can type individual place names (use traditional Chinese 繁體中文) or a list of places, separated by commas (regular ',' or Chinese '，').
+      </p>
+      <p>
+          You can also paste a block of text. The app will scan it against CHGIS place names, prefer longer matches, and map the detected places.
       </p>
       <p>
           You can specify a year (or range of years) in the Western calendar.  Or you can leave the date range blank. Likewise, you can leave the place name blank to retrieve all places for a given year.

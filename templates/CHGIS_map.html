@@ -3,16 +3,122 @@
 <head>
   <title>CHGIS Map</title>
   <style>
-    #map {
-      height: 500px;
-      width: 100%;
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      color: #333333;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin: 16px 20px;
+    }
+
+    .map-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      height: calc(100vh - 64px);
+    }
+
+    .map-pane {
+      min-width: 0;
+      height: 100%;
+    }
+
+    .map-pane .folium-map {
+      height: 100%;
+    }
+
+    .results-panel {
+      border-left: 1px solid #d2c4af;
+      box-sizing: border-box;
+      height: 100%;
+      overflow-y: auto;
+      padding: 18px;
+      background: #fff9f0;
+    }
+
+    .results-panel h2 {
+      font-size: 18px;
+      margin: 0 0 14px;
+    }
+
+    .matched-place-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .matched-place {
+      border-bottom: 1px solid #eadcc8;
+      padding: 10px 0;
+    }
+
+    .matched-place-name {
+      display: block;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .matched-place-meta {
+      display: block;
+      font-size: 13px;
+      line-height: 1.4;
+      margin-top: 4px;
+      color: #665a4b;
+    }
+
+    .empty-results {
+      color: #665a4b;
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    @media (max-width: 800px) {
+      .map-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      .map-pane {
+        height: 70vh;
+      }
+
+      .results-panel {
+        border-left: 0;
+        border-top: 1px solid #d2c4af;
+        max-height: none;
+      }
     }
   </style>
 </head>
 <body>
   <h1>CHGIS Map</h1>
-  <div id="map" style="width: 100%; height: 100vh;">
-    {{ map_data|safe }}
-  </div>  
+  <div class="map-layout">
+    <div class="map-pane">
+      {{ map_data|safe }}
+    </div>
+    <aside class="results-panel">
+      <h2>Detected Place Names</h2>
+      {% if matched_places %}
+        <ul class="matched-place-list">
+          {% for place in matched_places %}
+            <li class="matched-place">
+              <span class="matched-place-name">{{ place.name }}</span>
+              <span class="matched-place-meta">
+                {{ place.count }} occurrence{% if place.count != 1 %}s{% endif %}
+                {% if place.variant_display and place.variant_display != place.name %}
+                  · matched {{ place.variant_display }}
+                {% endif %}
+              </span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty-results">No place names were detected from pasted text.</p>
+      {% endif %}
+    </aside>
+  </div>
 </body>
 </html>

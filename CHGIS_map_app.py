@@ -5,6 +5,7 @@ from folium.plugins import MarkerCluster
 import re
 import pandas as pd
 import logging
+from functools import lru_cache
 from urllib.parse import quote
 
 
@@ -17,6 +18,7 @@ MAP_CENTER = [30.85158, 120.10989]
 MAP_ZOOM_START = 6
 CLUSTER_DISABLE_AT_ZOOM = 13
 MAP_MAX_ZOOM = CLUSTER_DISABLE_AT_ZOOM
+MIN_TEXT_MATCH_LENGTH = 2
 
 
 # Create a logger instance
@@ -47,22 +49,27 @@ def chgis_map():
     if request.method == 'POST':
         # Retrieve user input from the form
         place_names = request.form.get('place_names')
+        source_text = request.form.get('source_text')
         date = request.form.get('date')
         date_range = request.form.get('date_range')
         prefectures = request.form.get('prefectures')
         counties = request.form.get('counties')
 
         logger.info(
-            "User input: place_names=%s date=%s date_range=%s prefectures=%s counties=%s",
+            "User input: place_names=%s source_text_length=%s date=%s date_range=%s prefectures=%s counties=%s",
             place_names,
+            len(source_text or ''),
             date,
             date_range,
             prefectures,
             counties,
         )
 
+        matched_places = extract_place_names(source_text, prefectures, counties)
+        query_names = combine_place_names(place_names, [place['name'] for place in matched_places])
+
         # Process the user input and generate the map
-        filtered_data = filter_data(place_names, date, date_range, prefectures, counties)
+        filtered_data = filter_data(query_names, date, date_range, prefectures, counties)
 
         generated_map = generate_map(filtered_data)
 
@@ -71,7 +78,8 @@ def chgis_map():
 
         # Pass the map HTML to the template
         template_data = {
-            'map_data': map_html
+            'map_data': map_html,
+            'matched_places': matched_places,
         }
 
         return render_template('CHGIS_map.html', **template_data)
@@ -84,18 +92,120 @@ def chgis_map():
 prefectures_df = pd.read_csv('data/CHGIS_prefectures.csv')
 counties_df = pd.read_csv('data/CHGIS_counties.csv')
 
+
+def selected_dataframes(prefectures, counties):
+    dataframes = []
+    if prefectures:
+        dataframes.append(prefectures_df)
+    if counties:
+        dataframes.append(counties_df)
+    return dataframes
+
+
+def selected_layer_key(prefectures, counties):
+    return bool(prefectures), bool(counties)
+
+
+def split_place_names(place_names):
+    if not place_names:
+        return []
+
+    pattern = r",|，"
+    return [name.strip() for name in re.split(pattern, place_names) if name.strip()]
+
+
+def combine_place_names(place_names, extracted_names):
+    names = split_place_names(place_names)
+    names.extend(name for name in extracted_names if name)
+    return "，".join(dict.fromkeys(names))
+
+
+@lru_cache(maxsize=4)
+def gazetteer_entries(prefectures, counties):
+    entries_by_variant = {}
+
+    for dataframe in selected_dataframes(prefectures, counties):
+        for _, row in dataframe.iterrows():
+            canonical_name = row.get('NAME_FT')
+            if not isinstance(canonical_name, str) or not canonical_name.strip():
+                continue
+
+            for column in ('NAME_FT', 'NAME_CH'):
+                variant = row.get(column)
+                if not isinstance(variant, str):
+                    continue
+
+                variant = variant.strip()
+                if len(variant) < MIN_TEXT_MATCH_LENGTH:
+                    continue
+
+                entry = entries_by_variant.setdefault(
+                    variant,
+                    {
+                        'variant': variant,
+                        'names': set(),
+                    },
+                )
+                entry['names'].add(canonical_name.strip())
+
+    return sorted(
+        entries_by_variant.values(),
+        key=lambda entry: (-len(entry['variant']), entry['variant']),
+    )
+
+
+def ranges_overlap(first, second):
+    return first[0] < second[1] and second[0] < first[1]
+
+
+def extract_place_names(source_text, prefectures='prefectures', counties='counties'):
+    if not source_text:
+        return []
+
+    occupied_ranges = []
+    matches_by_name = {}
+    prefectures_key, counties_key = selected_layer_key(prefectures, counties)
+
+    for entry in gazetteer_entries(prefectures_key, counties_key):
+        variant = entry['variant']
+        for match in re.finditer(re.escape(variant), source_text):
+            match_range = match.span()
+            if any(ranges_overlap(match_range, occupied) for occupied in occupied_ranges):
+                continue
+
+            occupied_ranges.append(match_range)
+            for name in entry['names']:
+                match_record = matches_by_name.setdefault(
+                    name,
+                    {
+                        'name': name,
+                        'variants': set(),
+                        'count': 0,
+                    },
+                )
+                match_record['variants'].add(variant)
+                match_record['count'] += 1
+
+    matched_places = []
+    for match_record in matches_by_name.values():
+        variants = sorted(match_record['variants'])
+        matched_places.append({
+            'name': match_record['name'],
+            'variants': variants,
+            'variant_display': "，".join(variants),
+            'count': match_record['count'],
+        })
+
+    return sorted(matched_places, key=lambda place: (-place['count'], place['name']))
+
 # Process user input and filter the data
 def filter_data(place_names, date, date_range, prefectures, counties):
     filtered_data = pd.DataFrame()  # Create an empty DataFrame for the filtered data
 
     # split up place names, if necessary
-    pattern = r",|，"
-    if re.search(pattern, place_names):
-        # Split the place_names using the regular expression pattern
-        place_names = [name.strip() for name in re.split(pattern, place_names)]
-    else:
-        # Single place name, convert it to a list
-        place_names = [place_names]
+    place_names = split_place_names(place_names)
+    if not place_names:
+        place_names = ['']
 
     # single date
     if date:
