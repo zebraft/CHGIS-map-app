@@ -262,6 +262,10 @@ def tooltip_for_row(row):
 
 
 def marker_for_row(row):
+    if pd.isna(row['Y_COOR']) or pd.isna(row['X_COOR']):
+        logger.error("Skipping row with missing coordinates: %s", row['NAME_FT'])
+        return None
+
     marker_args = {
         'location': [row['Y_COOR'], row['X_COOR']],
         'draggable': True,
