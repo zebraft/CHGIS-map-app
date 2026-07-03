@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 CHGIS_PLACENAME_URL = 'https://chgis.hudci.org/tgaz/placename'
 MAP_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}'
-HYDRO_OVERLAY_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Hydro_Reference_Overlay/MapServer/tile/{z}/{y}/{x}'
+REFERENCE_OVERLAY_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Reference_Overlay/MapServer/tile/{z}/{y}/{x}'
 MAP_ATTRIBUTION = 'Tiles &copy; Esri'
 MAP_CENTER = [30.85158, 120.10989]
 MAP_ZOOM_START = 6
@@ -667,8 +667,8 @@ def generate_map(data):
         attr=MAP_ATTRIBUTION,
     )
     folium.TileLayer(
-        tiles=HYDRO_OVERLAY_URL,
-        name='Rivers',
+        tiles=REFERENCE_OVERLAY_URL,
+        name='Reference overlay',
         attr=MAP_ATTRIBUTION,
         overlay=True,
         control=True,
