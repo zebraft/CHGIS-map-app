@@ -65,6 +65,16 @@
           margin: 6px 0 0;
       }
 
+      .search-note {
+          background: #f0e3cf;
+          border-left: 4px solid #796046;
+          color: #332a21;
+          font-size: 15px;
+          line-height: 1.45;
+          margin: 0 0 18px;
+          padding: 10px 12px;
+      }
+
       .form-subsection {
           border-top: 1px solid #e4d6c2;
           padding-top: 16px;
@@ -180,6 +190,7 @@
           {% if error_message %}
               <div class="error-message">{{ error_message }}</div>
           {% endif %}
+          <p class="search-note">To map every CHGIS record active in a period, leave both search fields blank and enter a single year or year range below.</p>
           <form action="/CHGIS_map" method="POST" class="form-grid">
               <div class="form-subsection form-grid">
                   <h3>Search Type</h3>
@@ -226,7 +237,6 @@
                       <p class="help-text">These checkboxes filter which CHGIS layers are searched and mapped.</p>
                   </fieldset>
 
-                  <p class="help-text">Leave both text fields blank and provide a year or range to map all selected CHGIS records active in that period.</p>
               </div>
 
               <div class="generate-button">

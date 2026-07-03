@@ -574,21 +574,19 @@ class ClusterClickSpiderfy(MacroElement):
 class BaseLayerAutoSwitch(MacroElement):
     _template = Template("""
         {% macro script(this, kwargs) %}
+            var {{ this.current_url_name }} = null;
             function {{ this.switch_name }}() {
-                if ({{ this.map_name }}.getZoom() > {{ this.switch_zoom }}) {
-                    if ({{ this.map_name }}.hasLayer({{ this.physical_name }})) {
-                        {{ this.map_name }}.removeLayer({{ this.physical_name }});
-                    }
-                    if (!{{ this.map_name }}.hasLayer({{ this.shaded_name }})) {
-                        {{ this.map_name }}.addLayer({{ this.shaded_name }});
-                    }
-                } else {
-                    if ({{ this.map_name }}.hasLayer({{ this.shaded_name }})) {
-                        {{ this.map_name }}.removeLayer({{ this.shaded_name }});
-                    }
-                    if (!{{ this.map_name }}.hasLayer({{ this.physical_name }})) {
-                        {{ this.map_name }}.addLayer({{ this.physical_name }});
-                    }
+                if (!{{ this.map_name }}.hasLayer({{ this.physical_name }})) {
+                    return;
+                }
+
+                var targetUrl = {{ this.map_name }}.getZoom() > {{ this.switch_zoom }}
+                    ? {{ this.shaded_url }}
+                    : {{ this.physical_url }};
+
+                if ({{ this.current_url_name }} !== targetUrl) {
+                    {{ this.physical_name }}.setUrl(targetUrl);
+                    {{ this.current_url_name }} = targetUrl;
                 }
             }
             {{ this.map_name }}.on('zoomend load', {{ this.switch_name }});
@@ -601,9 +599,11 @@ class BaseLayerAutoSwitch(MacroElement):
         self._name = 'BaseLayerAutoSwitch'
         self.map_name = folium_map.get_name()
         self.physical_name = physical_layer.get_name()
-        self.shaded_name = shaded_layer.get_name()
         self.switch_zoom = switch_zoom
         self.switch_name = f"{self.get_name()}_switch"
+        self.current_url_name = f"{self.get_name()}_currentUrl"
+        self.physical_url = repr(PHYSICAL_MAP_TILE_URL)
+        self.shaded_url = repr(MAP_TILE_URL)
 
 
 def location_key(row):
@@ -703,7 +703,7 @@ def generate_map(data):
     )
     physical_layer = folium.TileLayer(
         tiles=PHYSICAL_MAP_TILE_URL,
-        name='Physical map',
+        name='Physical map / shaded relief at close zoom',
         attr=MAP_ATTRIBUTION,
         max_zoom=MAP_MAX_ZOOM,
         control=True,
