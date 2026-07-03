@@ -80,6 +80,12 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertTrue(any(result['matched_by_alias'] for result in results if result['name'].startswith('東莞')))
         self.assertTrue(any(alias_only_match(result) for result in results if result['name'].startswith('東莞')))
 
+    def test_extract_place_names_returns_text_order_not_frequency_order(self):
+        results = extract_place_names('保德县在前。東莞又見東莞。', 'prefectures', 'counties')
+        result_names = [result['name'] for result in results]
+
+        self.assertLess(result_names.index('保德縣'), result_names.index('東莞郡'))
+
     def test_reign_year_context_suppresses_alias_match(self):
         self.assertTrue(followed_by_reign_year('五年，王崩。', 0))
         results = extract_place_names('隆安五年，王崩。', 'prefectures', 'counties')
@@ -94,6 +100,8 @@ class ChgisMapAppTest(unittest.TestCase):
 
         self.assertIn("class='source-place'", html)
         self.assertIn("data-place-names='東莞侯國|東莞縣|東莞郡'", html)
+        self.assertIn("tabindex='0'", html)
+        self.assertIn("data-primary-place='東莞侯國'", html)
         self.assertIn('>東莞</mark>', html)
 
     def test_combine_place_names_deduplicates_manual_and_extracted_names(self):
@@ -208,6 +216,8 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertIn('place-toggle', html)
         self.assertIn('scheduleMapUpdate', html)
         self.assertIn('form.submit()', html)
+        self.assertIn('locatePlaceFromText', html)
+        self.assertIn('data-place-name="保德縣"', html)
         self.assertIn('保德縣', html)
         self.assertIn('2 occurrences', html)
         self.assertIn('1 date-matched record', html)
@@ -283,7 +293,7 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertIn('東莞郡', html)
         self.assertIn('alias match 東莞', html)
         self.assertIn('on map', html)
-        self.assertIn('value="東莞郡" checked', html)
+        self.assertIn('value="東莞郡" data-place-index="3" checked', html)
 
     def test_jiangzhou_426_maps_date_valid_alias_candidate(self):
         with app.test_client() as client:
@@ -302,7 +312,7 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertIn('江州縣', html)
         self.assertIn('alias match 江州', html)
         self.assertIn('1 date-matched record', html)
-        self.assertIn('value="江州縣" checked', html)
+        self.assertIn('value="江州縣" data-place-index="1" checked', html)
         self.assertIn('on map', html)
 
     def test_invalid_date_renders_search_error(self):

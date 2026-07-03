@@ -266,9 +266,12 @@ def highlighted_source_text(source_text, matched_places):
     for match in sorted(matches, key=lambda item: item['start']):
         chunks.append(escape(source_text[cursor:match['start']]))
         place_names = "|".join(match['places'])
+        primary_place = match['places'][0] if match['places'] else ''
         chunks.append(
-            "<mark class='source-place' data-place-names='"
+            "<mark class='source-place' tabindex='0' title='Show detected place in list' data-place-names='"
             + escape(place_names, quote=True)
+            + "' data-primary-place='"
+            + escape(primary_place, quote=True)
             + "'>"
             + escape(source_text[match['start']:match['end']])
             + "</mark>"
@@ -380,12 +383,14 @@ def extract_place_names(source_text, prefectures='prefectures', counties='counti
                         'variants': set(),
                         'alias_variants': set(),
                         'count': 0,
+                        'first_start': match_range[0],
                     },
                 )
                 match_record['variants'].add(variant)
                 if name in entry['alias_names']:
                     match_record['alias_variants'].add(variant)
                 match_record['count'] += 1
+                match_record['first_start'] = min(match_record['first_start'], match_range[0])
 
     matched_places = []
     for match_record in matches_by_name.values():
@@ -399,9 +404,10 @@ def extract_place_names(source_text, prefectures='prefectures', counties='counti
             'alias_variant_display': "，".join(alias_variants),
             'matched_by_alias': bool(alias_variants),
             'count': match_record['count'],
+            'first_start': match_record['first_start'],
         })
 
-    return sorted(matched_places, key=lambda place: (-place['count'], place['name']))
+    return sorted(matched_places, key=lambda place: (place['first_start'], place['name']))
 
 # Process user input and filter the data
 def filter_data(place_names, date_filter=None, prefectures=None, counties=None, allow_date_only=True):
