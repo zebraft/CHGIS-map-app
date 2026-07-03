@@ -12,6 +12,7 @@ from CHGIS_map_app import (
     generate_map,
     highlighted_source_text,
     marker_for_row,
+    followed_by_reign_year,
     short_alias,
 )
 
@@ -40,6 +41,11 @@ class ChgisMapAppTest(unittest.TestCase):
 
         self.assertFalse(results.empty)
         self.assertTrue(((results['BEG_YR'] <= 1200) & (results['END_YR'] >= 1200)).all())
+
+    def test_filter_data_empty_query_can_disable_date_only_fallback(self):
+        results = filter_data('', (1200, 1200), '', 'counties', allow_date_only=False)
+
+        self.assertTrue(results.empty)
 
     def test_filter_data_date_range_does_not_raise(self):
         results = filter_data('保德縣', (1100, 1300), '', 'counties')
@@ -72,6 +78,13 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertIn('東莞縣', result_names)
         self.assertTrue(any(result['matched_by_alias'] for result in results if result['name'].startswith('東莞')))
         self.assertTrue(any(alias_only_match(result) for result in results if result['name'].startswith('東莞')))
+
+    def test_reign_year_context_suppresses_alias_match(self):
+        self.assertTrue(followed_by_reign_year('五年，王崩。', 0))
+        results = extract_place_names('隆安五年，王崩。', 'prefectures', 'counties')
+        result_names = {result['name'] for result in results}
+
+        self.assertNotIn('隆安縣', result_names)
 
     def test_highlighted_source_text_marks_detected_variants(self):
         text = '東莞劉穆之，字道和，小字道人。'
@@ -171,11 +184,49 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('Detected Place Names', html)
         self.assertIn('<h2>Passage</h2>', html)
-        self.assertIn('source-place', html)
+        self.assertIn("class='source-place'", html)
         self.assertIn('place-toggle', html)
+        self.assertIn('scheduleMapUpdate', html)
+        self.assertIn('form.submit()', html)
         self.assertIn('保德縣', html)
         self.assertIn('2 occurrences', html)
-        self.assertIn('1 mapped', html)
+        self.assertIn('1 date-matched record', html)
+        self.assertIn('on map', html)
+
+    def test_date_filtered_out_detected_place_is_unchecked(self):
+        with app.test_client() as client:
+            response = client.post('/CHGIS_map', data={
+                'place_names': '',
+                'source_text': '保德县在此。',
+                'date': '1300',
+                'date_range': '',
+                'counties': 'counties',
+            })
+
+        html = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('保德縣', html)
+        self.assertNotIn("class='source-place'", html)
+        self.assertIn('No place names were detected from pasted text.', html)
+
+    def test_alias_candidate_list_is_filtered_by_date_before_rendering(self):
+        with app.test_client() as client:
+            response = client.post('/CHGIS_map', data={
+                'place_names': '',
+                'source_text': '東莞劉穆之，字道和。',
+                'date': '700',
+                'date_range': '',
+                'prefectures': 'prefectures',
+                'counties': 'counties',
+            })
+
+        html = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('東莞郡', html)
+        self.assertNotIn('東莞縣', html)
+        self.assertNotIn("class='source-place'", html)
 
     def test_posted_source_text_can_deselect_all_detected_places(self):
         with app.test_client() as client:
@@ -192,9 +243,10 @@ class ChgisMapAppTest(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn('保德縣', html)
-        self.assertIn('0 mapped', html)
+        self.assertIn('2 date-matched records', html)
+        self.assertIn('not on map', html)
 
-    def test_posted_alias_matches_are_candidates_but_not_mapped_by_default(self):
+    def test_posted_alias_matches_are_mapped_by_default(self):
         with app.test_client() as client:
             response = client.post('/CHGIS_map', data={
                 'place_names': '',
@@ -210,8 +262,28 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('東莞郡', html)
         self.assertIn('alias match 東莞', html)
-        self.assertIn('0 mapped', html)
-        self.assertIn('value="東莞郡" >', html)
+        self.assertIn('on map', html)
+        self.assertIn('value="東莞郡" checked', html)
+
+    def test_jiangzhou_426_maps_date_valid_alias_candidate(self):
+        with app.test_client() as client:
+            response = client.post('/CHGIS_map', data={
+                'place_names': '',
+                'source_text': '江州刺史',
+                'date': '426',
+                'date_range': '',
+                'prefectures': 'prefectures',
+                'counties': 'counties',
+            })
+
+        html = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('江州縣', html)
+        self.assertIn('alias match 江州', html)
+        self.assertIn('1 date-matched record', html)
+        self.assertIn('value="江州縣" checked', html)
+        self.assertIn('on map', html)
 
     def test_invalid_date_renders_search_error(self):
         with app.test_client() as client:
@@ -241,6 +313,23 @@ class ChgisMapAppTest(unittest.TestCase):
             })
 
         self.assertEqual(response.status_code, 200)
+        self.assertLess(len(response.get_data()), 200000)
+
+    def test_posted_unmatched_source_text_with_date_range_does_not_become_date_only_search(self):
+        with app.test_client() as client:
+            response = client.post('/CHGIS_map', data={
+                'place_names': '',
+                'source_text': '長安洛陽。',
+                'date': '',
+                'date_range': '700,1000',
+                'prefectures': 'prefectures',
+                'counties': 'counties',
+            })
+
+        html = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('showing the first 1000', html)
         self.assertLess(len(response.get_data()), 200000)
 
     def test_date_only_large_results_show_warning_and_are_capped(self):
