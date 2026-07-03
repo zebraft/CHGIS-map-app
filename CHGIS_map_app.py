@@ -216,7 +216,7 @@ def selected_detected_names(matched_places, submitted_selected_places, detected_
         selected_names = set(submitted_selected_places)
         return [name for name in matched_names if name in selected_names]
 
-    return [place['name'] for place in matched_places if not alias_only_match(place)]
+    return matched_names
 
 
 def alias_only_match(place):
@@ -348,7 +348,7 @@ def followed_by_reign_year(source_text, end_index):
 
 
 def row_matches_place_names(place_name, query_names):
-    return isinstance(place_name, str) and any(name in place_name for name in query_names)
+    return isinstance(place_name, str) and ('' in query_names or place_name in query_names)
 
 
 def extract_place_names(source_text, prefectures='prefectures', counties='counties'):
