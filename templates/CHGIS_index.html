@@ -149,26 +149,36 @@
           padding: 10px;
       }
 
-      .notes {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 28px;
+      .form-notes {
+          border-top: 1px solid #e4d6c2;
+          margin: 18px 0 0;
+          padding: 14px 0 0 20px;
       }
 
-      .notes ul {
+      .form-notes li {
+          color: #4e463d;
+          font-size: 14px;
+          line-height: 1.45;
+          margin-bottom: 6px;
+      }
+
+      .resources {
+          margin-top: 24px;
+      }
+
+      .resources ul {
           margin: 0;
           padding-left: 20px;
       }
 
-      .notes li {
+      .resources li {
           font-size: 15px;
           line-height: 1.5;
           margin-bottom: 8px;
       }
 
       @media (max-width: 720px) {
-          .date-grid,
-          .notes {
+          .date-grid {
               grid-template-columns: 1fr;
           }
 
@@ -242,31 +252,23 @@
               <div class="generate-button">
                   <input type="submit" value="Generate Map">
               </div>
+
+              <ul class="form-notes">
+                  <li>Text-passage search finds possible CHGIS names and lets you uncheck candidates beside the map.</li>
+                  <li>Place-name search maps the names you enter directly; separate multiple names with commas.</li>
+                  <li>Dates and administrative levels filter both kinds of search.</li>
+                  <li>Nearby or identical locations are grouped into one marker with all records in the popup.</li>
+              </ul>
           </form>
       </section>
 
-      <section class="notes">
-          <div>
-              <h2>How It Works</h2>
-              <p>Text-passage search scans against CHGIS names, including simplified/traditional variants and short administrative aliases. Place-name search uses the names you enter directly.</p>
-              <p>Detected candidates are shown beside the map and can be unchecked. Date and level filters apply before candidates are mapped.</p>
-              <p>Administrative labels shift over time. The upper-level option groups records such as 郡, 州, 府, and 路 without assuming they meant the same thing in every period.</p>
-          </div>
-          <div>
-              <h2>Notes</h2>
-              <ul>
-                  <li>Use traditional Chinese for manual place-name searches when possible.</li>
-                  <li>Separate manual names with commas, either "," or "，".</li>
-                  <li>Nearby or identical locations are grouped into one marker with all CHGIS records in the popup.</li>
-                  <li>CHGIS links in popups open the corresponding placename search.</li>
-              </ul>
-              <h2>Resources</h2>
-              <ul>
-                  <li><a href="https://github.com/zebraft/CHGIS-map-app.git" target="_blank">Repository</a></li>
-                  <li><a href="https://dataverse.harvard.edu/dataverse/chgis_v6" target="_blank">CHGIS v6 data</a></li>
-                  <li><a href="https://chgis.hudci.org/tgaz/?" target="_blank">CHGIS Temporal Gazetteer</a></li>
-              </ul>
-          </div>
+      <section class="resources">
+          <h2>Resources</h2>
+          <ul>
+              <li><a href="https://github.com/zebraft/CHGIS-map-app.git" target="_blank">Repository</a></li>
+              <li><a href="https://dataverse.harvard.edu/dataverse/chgis_v6" target="_blank">CHGIS v6 data</a></li>
+              <li><a href="https://chgis.hudci.org/tgaz/?" target="_blank">CHGIS Temporal Gazetteer</a></li>
+          </ul>
       </section>
   </div>
 </body>

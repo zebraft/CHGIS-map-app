@@ -21,7 +21,7 @@ MAP_CENTER = [30.85158, 120.10989]
 MAP_ZOOM_START = 6
 CLUSTER_DISABLE_AT_ZOOM = 13
 MAP_MAX_ZOOM = CLUSTER_DISABLE_AT_ZOOM
-BASEMAP_SWITCH_ZOOM = 10
+BASEMAP_SWITCH_ZOOM = 8
 MIN_TEXT_MATCH_LENGTH = 2
 MAX_RENDER_ROWS = 1000
 ADMIN_SUFFIXES = (
@@ -574,21 +574,23 @@ class ClusterClickSpiderfy(MacroElement):
 class BaseLayerAutoSwitch(MacroElement):
     _template = Template("""
         {% macro script(this, kwargs) %}
-            var {{ this.current_url_name }} = null;
+            var {{ this.force_shaded_name }} = false;
             function {{ this.switch_name }}() {
-                if (!{{ this.map_name }}.hasLayer({{ this.physical_name }})) {
-                    return;
-                }
-
-                var targetUrl = {{ this.map_name }}.getZoom() > {{ this.switch_zoom }}
-                    ? {{ this.shaded_url }}
-                    : {{ this.physical_url }};
-
-                if ({{ this.current_url_name }} !== targetUrl) {
-                    {{ this.physical_name }}.setUrl(targetUrl);
-                    {{ this.current_url_name }} = targetUrl;
+                if ({{ this.force_shaded_name }} || {{ this.map_name }}.getZoom() >= {{ this.switch_zoom }}) {
+                    {{ this.physical_name }}.setOpacity(0);
+                    {{ this.shaded_name }}.setOpacity(1);
+                } else {
+                    {{ this.physical_name }}.setOpacity(1);
+                    {{ this.shaded_name }}.setOpacity(0);
                 }
             }
+            {{ this.physical_name }}.on('tileerror', function() {
+                {{ this.force_shaded_name }} = true;
+                {{ this.switch_name }}();
+            });
+            {{ this.map_name }}.on('zoomstart', function() {
+                {{ this.force_shaded_name }} = false;
+            });
             {{ this.map_name }}.on('zoomend load', {{ this.switch_name }});
             window.setTimeout({{ this.switch_name }}, 0);
         {% endmacro %}
@@ -599,11 +601,10 @@ class BaseLayerAutoSwitch(MacroElement):
         self._name = 'BaseLayerAutoSwitch'
         self.map_name = folium_map.get_name()
         self.physical_name = physical_layer.get_name()
+        self.shaded_name = shaded_layer.get_name()
         self.switch_zoom = switch_zoom
         self.switch_name = f"{self.get_name()}_switch"
-        self.current_url_name = f"{self.get_name()}_currentUrl"
-        self.physical_url = repr(PHYSICAL_MAP_TILE_URL)
-        self.shaded_url = repr(MAP_TILE_URL)
+        self.force_shaded_name = f"{self.get_name()}_forceShaded"
 
 
 def location_key(row):
@@ -703,10 +704,12 @@ def generate_map(data):
     )
     physical_layer = folium.TileLayer(
         tiles=PHYSICAL_MAP_TILE_URL,
-        name='Physical map / shaded relief at close zoom',
+        name='Physical map',
         attr=MAP_ATTRIBUTION,
         max_zoom=MAP_MAX_ZOOM,
-        control=True,
+        control=False,
+        opacity=1,
+        z_index=1,
     )
     physical_layer.add_to(m)
     shaded_layer = folium.TileLayer(
@@ -714,8 +717,9 @@ def generate_map(data):
         name='Shaded relief',
         attr=MAP_ATTRIBUTION,
         max_zoom=MAP_MAX_ZOOM,
-        control=True,
-        show=False,
+        control=False,
+        opacity=0,
+        z_index=2,
     )
     shaded_layer.add_to(m)
     m.add_child(BaseLayerAutoSwitch(m, physical_layer, shaded_layer, BASEMAP_SWITCH_ZOOM))
