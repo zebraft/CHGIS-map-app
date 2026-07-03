@@ -15,6 +15,7 @@ app = Flask(__name__)
 
 CHGIS_PLACENAME_URL = 'https://chgis.hudci.org/tgaz/placename'
 MAP_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}'
+HYDRO_OVERLAY_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Hydro_Reference_Overlay/MapServer/tile/{z}/{y}/{x}'
 MAP_ATTRIBUTION = 'Tiles &copy; Esri'
 MAP_CENTER = [30.85158, 120.10989]
 MAP_ZOOM_START = 6
@@ -665,6 +666,14 @@ def generate_map(data):
         max_zoom=MAP_MAX_ZOOM,
         attr=MAP_ATTRIBUTION,
     )
+    folium.TileLayer(
+        tiles=HYDRO_OVERLAY_URL,
+        name='Rivers',
+        attr=MAP_ATTRIBUTION,
+        overlay=True,
+        control=True,
+        max_zoom=MAP_MAX_ZOOM,
+    ).add_to(m)
     logger.info("Map generated")
 
     marker_cluster = MarkerCluster(
@@ -680,6 +689,7 @@ def generate_map(data):
         marker_cluster.add_child(marker_for_group(location, records))
         
     m.add_child(marker_cluster)
+    folium.LayerControl().add_to(m)
 
     #m.add_child(folium.LatLngPopup())
 
