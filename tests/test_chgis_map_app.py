@@ -11,6 +11,7 @@ from CHGIS_map_app import (
     filter_data,
     generate_map,
     highlighted_source_text,
+    map_bounds_for_locations,
     marker_for_row,
     followed_by_reign_year,
     short_alias,
@@ -133,6 +134,12 @@ class ChgisMapAppTest(unittest.TestCase):
 
         self.assertIsNone(marker_for_row(row))
 
+    def test_map_bounds_expand_single_point(self):
+        self.assertEqual(
+            map_bounds_for_locations([(37.87, 112.55)]),
+            [[37.12, 111.8], [38.62, 113.3]],
+        )
+
     def test_generate_map_groups_overlapping_points_in_one_popup(self):
         rows = pd.DataFrame([
             {
@@ -174,6 +181,9 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertIn('setTimeout', html)
         self.assertIn('setOpacity', html)
         self.assertIn('getZoom() >= 8', html)
+        self.assertIn('fitBounds', html)
+        self.assertIn('[37.12, 111.8]', html)
+        self.assertIn('[38.62, 113.3]', html)
         self.assertLess(html.find('World_Physical_Map'), html.find('World_Shaded_Relief'))
         self.assertIn('"maxZoom": 13', html)
         self.assertIn('"zoomToBoundsOnClick": false', html)

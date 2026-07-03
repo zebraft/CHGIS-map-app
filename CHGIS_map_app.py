@@ -24,6 +24,7 @@ MAP_MAX_ZOOM = CLUSTER_DISABLE_AT_ZOOM
 BASEMAP_SWITCH_ZOOM = 8
 MIN_TEXT_MATCH_LENGTH = 2
 MAX_RENDER_ROWS = 1000
+SINGLE_POINT_BOUNDS_BUFFER = 0.75
 ADMIN_SUFFIXES = (
     '直隸州',
     '長官司',
@@ -638,6 +639,25 @@ def grouped_location_records(data):
     return sorted(groups.items(), key=lambda item: (item[0][0], item[0][1]))
 
 
+def map_bounds_for_locations(locations):
+    if not locations:
+        return None
+
+    latitudes = [location[0] for location in locations]
+    longitudes = [location[1] for location in locations]
+    min_lat, max_lat = min(latitudes), max(latitudes)
+    min_lon, max_lon = min(longitudes), max(longitudes)
+
+    if min_lat == max_lat:
+        min_lat -= SINGLE_POINT_BOUNDS_BUFFER
+        max_lat += SINGLE_POINT_BOUNDS_BUFFER
+    if min_lon == max_lon:
+        min_lon -= SINGLE_POINT_BOUNDS_BUFFER
+        max_lon += SINGLE_POINT_BOUNDS_BUFFER
+
+    return [[min_lat, min_lon], [max_lat, max_lon]]
+
+
 def grouped_popup(records):
     rows = []
     for row in sorted(records, key=lambda item: (str(item.get('NAME_FT')), item.get('BEG_YR', 0), item.get('END_YR', 0))):
@@ -734,10 +754,14 @@ def generate_map(data):
     ).add_to(m)
     m.add_child(ClusterClickSpiderfy(marker_cluster))
 
-    for location, records in grouped_location_records(data):
+    grouped_records = grouped_location_records(data)
+    for location, records in grouped_records:
         marker_cluster.add_child(marker_for_group(location, records))
         
     m.add_child(marker_cluster)
+    bounds = map_bounds_for_locations([location for location, _records in grouped_records])
+    if bounds:
+        m.fit_bounds(bounds, padding=(40, 40))
     folium.LayerControl().add_to(m)
 
     #m.add_child(folium.LatLngPopup())
