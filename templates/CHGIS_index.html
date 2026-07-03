@@ -4,151 +4,224 @@
     <title>Simple CHGIS Map</title>
     <style>
       body {
+          background-color: #f4eadb;
+          color: #2f2f2f;
           font-family: Arial, sans-serif;
           margin: 0;
-          padding: 0;
-          display: flex;
-          justify-content: center;
-          /*align-items: center;*/
           min-height: 100vh;
-          background-color: #fde6cc;
-          color: #333333;
-          margin-left: 50px;
-          margin-right: 50px;
-          margin-bottom: 100px
       }
+
       .container {
-    margin: 0 auto; /* Added container class */
-    max-width: 800px; /* Adjust the max-width as needed */
-    text-align: left; /* Adjust as needed */
-        }
+          margin: 0 auto;
+          max-width: 920px;
+          padding: 48px 24px 72px;
+      }
 
       h1 {
-          font-size: 32px;
-          margin-top: 1in;
-          margin-bottom: 40px;
-          text-align: center;
+          font-size: 34px;
+          margin: 0 0 10px;
+      }
+
+      h2 {
+          font-size: 20px;
+          margin: 0 0 16px;
       }
 
       p {
-          font-size: 18px;
-          line-height: 1.6;
-          margin-bottom: 20px;
-          text-align: left;
-      }
-
-      i {
-          font-style: italic;
-      }
-
-      .form-section input[type="text"] {
           font-size: 16px;
-          padding: 13px;
-          width: max-content;
-          margin-bottom: 15px;
+          line-height: 1.55;
+          margin: 0 0 14px;
       }
 
-      .form-section textarea {
+      .intro {
+          max-width: 760px;
+          margin-bottom: 28px;
+      }
+
+      .form-section {
+          background: #fffaf2;
+          border: 1px solid #dfcfb8;
+          padding: 22px;
+          margin-bottom: 28px;
+      }
+
+      .form-grid {
+          display: grid;
+          gap: 16px;
+      }
+
+      .field label,
+      .level-options legend {
+          display: block;
+          font-size: 14px;
+          font-weight: bold;
+          margin-bottom: 6px;
+      }
+
+      .field input[type="text"],
+      .field textarea {
+          border: 1px solid #bba98f;
           box-sizing: border-box;
           font-family: Arial, sans-serif;
           font-size: 16px;
           line-height: 1.4;
-          min-height: 96px;
-          padding: 13px;
+          padding: 10px;
           width: 100%;
-          margin-bottom: 15px;
       }
 
-      .form-section .generate-button input[type="submit"] {
-          font-size: 18px;
-          margin-top: 15px;
-          padding: 12px 24px;
-          width: 200px;
+      .field textarea {
+          min-height: 86px;
+          resize: vertical;
+      }
+
+      .date-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+      }
+
+      .level-options {
+          border: 0;
+          margin: 0;
+          padding: 0;
+      }
+
+      .checkbox-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 18px;
+      }
+
+      .checkbox-row label {
+          font-size: 15px;
+          font-weight: normal;
+          margin: 0;
+      }
+
+      .generate-button input[type="submit"] {
+          background: #303030;
+          border: 0;
+          color: #ffffff;
+          cursor: pointer;
+          font-size: 17px;
+          padding: 11px 18px;
       }
 
       .error-message {
           background: #fff3f0;
           border: 1px solid #d46a5f;
           color: #7a2f28;
-          font-size: 16px;
+          font-size: 15px;
           line-height: 1.4;
-          margin-bottom: 18px;
-          padding: 12px;
+          margin-bottom: 16px;
+          padding: 10px;
       }
 
-      li {
-        margin-left: 50px;
-        }
+      .notes {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 28px;
+      }
+
+      .notes ul {
+          margin: 0;
+          padding-left: 20px;
+      }
+
+      .notes li {
+          font-size: 15px;
+          line-height: 1.5;
+          margin-bottom: 8px;
+      }
+
+      @media (max-width: 720px) {
+          .date-grid,
+          .notes {
+              grid-template-columns: 1fr;
+          }
+
+          .container {
+              padding: 28px 16px 48px;
+          }
+      }
   </style>
 </head>
 <body>
   <div class="container">
-      <h1>Simple CHGIS Map</h1>
+      <header class="intro">
+          <h1>Simple CHGIS Map</h1>
+          <p>Paste a passage or enter place names to map matches from the China Historical Geographic Information System (CHGIS v6).</p>
+      </header>
 
-      <div class="form-section">
+      <section class="form-section">
+          <h2>Search</h2>
           {% if error_message %}
               <div class="error-message">{{ error_message }}</div>
           {% endif %}
-          <form action="/CHGIS_map" method="POST">
-              <label for="place_names">Place Names:</label>
-              <input type="text" id="place_names" name="place_names" placeholder="Enter place names" value="{{ form_data.get('place_names', '') }}">
-              <br>
-              <label for="source_text">Text to scan for place names:</label>
-              <textarea id="source_text" name="source_text" placeholder="Paste text here">{{ form_data.get('source_text', '') }}</textarea>
-              <br>
-              <label for="date">Date:</label>
-              <input type="text" id="date" name="date" placeholder="Enter a date" value="{{ form_data.get('date', '') }}">
-              <br>
-              <span style="padding-left: 20px;">OR</span>
-              <label for="date_range">provide a Date Range, separated by a comma:</label>
-              <input type="text" id="date_range" name="date_range" placeholder="Begin,End" value="{{ form_data.get('date_range', '') }}">
-              <br>
-              <label for="search_type">Search Type:</label>
-              <input type="checkbox" id="prefectures" name="prefectures" value="prefectures" {% if not form_data or form_data.get('prefectures') %}checked{% endif %}>
-              <label for="prefectures">Prefectures</label>
-              <input type="checkbox" id="counties" name="counties" value="counties" {% if not form_data or form_data.get('counties') %}checked{% endif %}>
-              <label for="counties">Counties</label>
-              <br>
+          <form action="/CHGIS_map" method="POST" class="form-grid">
+              <div class="field">
+                  <label for="source_text">Passage</label>
+                  <textarea id="source_text" name="source_text" placeholder="Paste text to scan for place names">{{ form_data.get('source_text', '') }}</textarea>
+              </div>
+
+              <div class="field">
+                  <label for="place_names">Place names</label>
+                  <input type="text" id="place_names" name="place_names" placeholder="江州，建康，保德縣" value="{{ form_data.get('place_names', '') }}">
+              </div>
+
+              <div class="date-grid">
+                  <div class="field">
+                      <label for="date">Single year</label>
+                      <input type="text" id="date" name="date" placeholder="426" value="{{ form_data.get('date', '') }}">
+                  </div>
+                  <div class="field">
+                      <label for="date_range">Year range</label>
+                      <input type="text" id="date_range" name="date_range" placeholder="700,1000" value="{{ form_data.get('date_range', '') }}">
+                  </div>
+              </div>
+
+              <fieldset class="level-options">
+                  <legend>Administrative levels</legend>
+                  <div class="checkbox-row">
+                      <label>
+                          <input type="checkbox" id="prefectures" name="prefectures" value="prefectures" {% if not form_data or form_data.get('prefectures') %}checked{% endif %}>
+                          Prefecture-level records (郡, 州, 府, 路, etc.)
+                      </label>
+                      <label>
+                          <input type="checkbox" id="counties" name="counties" value="counties" {% if not form_data or form_data.get('counties') %}checked{% endif %}>
+                          County-level records (縣 and equivalents)
+                      </label>
+                  </div>
+              </fieldset>
+
               <div class="generate-button">
                   <input type="submit" value="Generate Map">
               </div>
           </form>
-      </div>
+      </section>
 
-      <p>
-          If you're reading a historical text and you want to quickly see where the places (prefectures 郡 and counties 縣, and their administrative equivalents) mentioned therein were, here's a simple tool.
-      </p>
-      <p>
-          Data is from the China Historical Geographical Information System (CHGIS, v6).
-    </p>
-      <p>
-          In the "Place name" box, you can type individual place names (use traditional Chinese 繁體中文) or a list of places, separated by commas (regular ',' or Chinese '，').
-      </p>
-      <p>
-          You can also paste a block of text. The app will scan it against CHGIS place names, prefer longer matches, and map the detected places.
-      </p>
-      <p>
-          You can specify a year (or range of years) in the Western calendar.  Or you can leave the date range blank. Likewise, you can leave the place name blank to retrieve all places for a given year.
-      </p>
-      <p>
-          By default, the map will show both prefectures and counties.  Untick one of the boxes to see one of those levels alone.
-      </p>
-      <p>
-          Scrolling over a point will reveal the name of the feature and the relevant dates, along with CHGIS information (as available) about how it started and ended.
-      </p>
-      <p>
-          Clicking on a point will give you a link to a CHGIS page with more information, including their discussions of the historical sources.
-      </p>
-      <p>
-          Nearby and overlapping points will collapse; the number shows how many there are. Click to unfold and zoom in.
-      </p>
-      <p></p>
-      <p>Resources:</p> 
-      <li>The <a href="https://github.com/zebraft/CHGIS-map-app.git" target="_blank">repository</a> for this site</li>
-      <li>CHGIS <a href="https://dataverse.harvard.edu/dataverse/chgis_v6" target="_blank">data</a></li>
-      <li>CHGIS <a href="https://maps.cga.harvard.edu/tgaz/?" target="_blank">API</a></li>
-      <li>An alternative API: <a href="http://ccts.sinica.edu.tw/api/" target="_blank">CCTS</a></li>
+      <section class="notes">
+          <div>
+              <h2>How It Works</h2>
+              <p>The app scans pasted text against CHGIS names, including simplified/traditional variants and short administrative aliases. Candidate names are shown beside the map and can be unchecked.</p>
+              <p>Date filters are applied before candidates are mapped. If a detected name has no active CHGIS record in the selected year or range, it is excluded from the candidate list.</p>
+          </div>
+          <div>
+              <h2>Notes</h2>
+              <ul>
+                  <li>Use traditional Chinese for manual place-name searches when possible.</li>
+                  <li>Separate manual names with commas, either "," or "，".</li>
+                  <li>Nearby or identical locations are grouped into one marker with all CHGIS records in the popup.</li>
+                  <li>CHGIS links in popups open the corresponding placename search.</li>
+              </ul>
+              <h2>Resources</h2>
+              <ul>
+                  <li><a href="https://github.com/zebraft/CHGIS-map-app.git" target="_blank">Repository</a></li>
+                  <li><a href="https://dataverse.harvard.edu/dataverse/chgis_v6" target="_blank">CHGIS v6 data</a></li>
+                  <li><a href="https://chgis.hudci.org/tgaz/?" target="_blank">CHGIS Temporal Gazetteer</a></li>
+              </ul>
+          </div>
+      </section>
   </div>
-  </body>
-  </html>
-  
+</body>
+</html>

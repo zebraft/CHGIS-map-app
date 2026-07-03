@@ -21,6 +21,7 @@ MAP_CENTER = [30.85158, 120.10989]
 MAP_ZOOM_START = 6
 CLUSTER_DISABLE_AT_ZOOM = 13
 MAP_MAX_ZOOM = CLUSTER_DISABLE_AT_ZOOM
+BASEMAP_SWITCH_ZOOM = 10
 MIN_TEXT_MATCH_LENGTH = 2
 MAX_RENDER_ROWS = 1000
 ADMIN_SUFFIXES = (
@@ -570,6 +571,41 @@ class ClusterClickSpiderfy(MacroElement):
         self.cluster_name = marker_cluster.get_name()
 
 
+class BaseLayerAutoSwitch(MacroElement):
+    _template = Template("""
+        {% macro script(this, kwargs) %}
+            function {{ this.switch_name }}() {
+                if ({{ this.map_name }}.getZoom() > {{ this.switch_zoom }}) {
+                    if ({{ this.map_name }}.hasLayer({{ this.physical_name }})) {
+                        {{ this.map_name }}.removeLayer({{ this.physical_name }});
+                    }
+                    if (!{{ this.map_name }}.hasLayer({{ this.shaded_name }})) {
+                        {{ this.map_name }}.addLayer({{ this.shaded_name }});
+                    }
+                } else {
+                    if ({{ this.map_name }}.hasLayer({{ this.shaded_name }})) {
+                        {{ this.map_name }}.removeLayer({{ this.shaded_name }});
+                    }
+                    if (!{{ this.map_name }}.hasLayer({{ this.physical_name }})) {
+                        {{ this.map_name }}.addLayer({{ this.physical_name }});
+                    }
+                }
+            }
+            {{ this.map_name }}.on('zoomend', {{ this.switch_name }});
+            {{ this.switch_name }}();
+        {% endmacro %}
+    """)
+
+    def __init__(self, folium_map, physical_layer, shaded_layer, switch_zoom):
+        super().__init__()
+        self._name = 'BaseLayerAutoSwitch'
+        self.map_name = folium_map.get_name()
+        self.physical_name = physical_layer.get_name()
+        self.shaded_name = shaded_layer.get_name()
+        self.switch_zoom = switch_zoom
+        self.switch_name = f"{self.get_name()}_switch"
+
+
 def location_key(row):
     return round(float(row['Y_COOR']), 6), round(float(row['X_COOR']), 6)
 
@@ -660,20 +696,29 @@ def generate_map(data):
     #https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}
 
     m = folium.Map(
-        tiles=MAP_TILE_URL,
-        name='Shaded relief',
+        tiles=None,
         location=MAP_CENTER,
         zoom_start=MAP_ZOOM_START,
         max_zoom=MAP_MAX_ZOOM,
-        attr=MAP_ATTRIBUTION,
     )
-    folium.TileLayer(
+    physical_layer = folium.TileLayer(
         tiles=PHYSICAL_MAP_TILE_URL,
         name='Physical map',
         attr=MAP_ATTRIBUTION,
         max_zoom=MAP_MAX_ZOOM,
         control=True,
-    ).add_to(m)
+    )
+    physical_layer.add_to(m)
+    shaded_layer = folium.TileLayer(
+        tiles=MAP_TILE_URL,
+        name='Shaded relief',
+        attr=MAP_ATTRIBUTION,
+        max_zoom=MAP_MAX_ZOOM,
+        control=True,
+        show=False,
+    )
+    shaded_layer.add_to(m)
+    m.add_child(BaseLayerAutoSwitch(m, physical_layer, shaded_layer, BASEMAP_SWITCH_ZOOM))
     logger.info("Map generated")
 
     marker_cluster = MarkerCluster(
