@@ -58,6 +58,28 @@
           margin-bottom: 6px;
       }
 
+      .help-text {
+          color: #5f564b;
+          font-size: 14px;
+          line-height: 1.45;
+          margin: 6px 0 0;
+      }
+
+      .form-subsection {
+          border-top: 1px solid #e4d6c2;
+          padding-top: 16px;
+      }
+
+      .form-subsection:first-child {
+          border-top: 0;
+          padding-top: 0;
+      }
+
+      .form-subsection h3 {
+          font-size: 16px;
+          margin: 0 0 10px;
+      }
+
       .field input[type="text"],
       .field textarea {
           border: 1px solid #bba98f;
@@ -150,7 +172,7 @@
   <div class="container">
       <header class="intro">
           <h1>Simple CHGIS Map</h1>
-          <p>Paste a passage or enter place names to map matches from the China Historical Geographic Information System (CHGIS v6).</p>
+          <p>Map CHGIS places in two ways: paste a text passage for automatic detection, or enter place names directly. Dates and administrative levels are filters.</p>
       </header>
 
       <section class="form-section">
@@ -159,40 +181,53 @@
               <div class="error-message">{{ error_message }}</div>
           {% endif %}
           <form action="/CHGIS_map" method="POST" class="form-grid">
-              <div class="field">
-                  <label for="source_text">Passage</label>
-                  <textarea id="source_text" name="source_text" placeholder="Paste text to scan for place names">{{ form_data.get('source_text', '') }}</textarea>
-              </div>
-
-              <div class="field">
-                  <label for="place_names">Place names</label>
-                  <input type="text" id="place_names" name="place_names" placeholder="江州，建康，保德縣" value="{{ form_data.get('place_names', '') }}">
-              </div>
-
-              <div class="date-grid">
+              <div class="form-subsection form-grid">
+                  <h3>Search Type</h3>
                   <div class="field">
-                      <label for="date">Single year</label>
-                      <input type="text" id="date" name="date" placeholder="426" value="{{ form_data.get('date', '') }}">
+                      <label for="source_text">Text passage</label>
+                      <textarea id="source_text" name="source_text" placeholder="Paste text to scan for place names">{{ form_data.get('source_text', '') }}</textarea>
+                      <p class="help-text">The app scans the passage for possible CHGIS names and shows candidates beside the map.</p>
                   </div>
+
                   <div class="field">
-                      <label for="date_range">Year range</label>
-                      <input type="text" id="date_range" name="date_range" placeholder="700,1000" value="{{ form_data.get('date_range', '') }}">
+                      <label for="place_names">Place-name search</label>
+                      <input type="text" id="place_names" name="place_names" placeholder="江州，建康，保德縣" value="{{ form_data.get('place_names', '') }}">
+                      <p class="help-text">Enter one or more names directly. Separate names with "," or "，".</p>
                   </div>
               </div>
 
-              <fieldset class="level-options">
-                  <legend>Administrative levels</legend>
-                  <div class="checkbox-row">
-                      <label>
-                          <input type="checkbox" id="prefectures" name="prefectures" value="prefectures" {% if not form_data or form_data.get('prefectures') %}checked{% endif %}>
-                          Prefecture-level records (郡, 州, 府, 路, etc.)
-                      </label>
-                      <label>
-                          <input type="checkbox" id="counties" name="counties" value="counties" {% if not form_data or form_data.get('counties') %}checked{% endif %}>
-                          County-level records (縣 and equivalents)
-                      </label>
+              <div class="form-subsection form-grid">
+                  <h3>Filters</h3>
+                  <div class="date-grid">
+                      <div class="field">
+                          <label for="date">Single year</label>
+                          <input type="text" id="date" name="date" placeholder="426" value="{{ form_data.get('date', '') }}">
+                          <p class="help-text">Show records active in this year.</p>
+                      </div>
+                      <div class="field">
+                          <label for="date_range">Year range</label>
+                          <input type="text" id="date_range" name="date_range" placeholder="700,1000" value="{{ form_data.get('date_range', '') }}">
+                          <p class="help-text">Show records overlapping this range. Use either a single year or a range.</p>
+                      </div>
                   </div>
-              </fieldset>
+
+                  <fieldset class="level-options">
+                      <legend>Administrative levels</legend>
+                      <div class="checkbox-row">
+                          <label>
+                              <input type="checkbox" id="prefectures" name="prefectures" value="prefectures" {% if not form_data or form_data.get('prefectures') %}checked{% endif %}>
+                              Prefectural and regional records (郡, 州, 府, 路, etc.)
+                          </label>
+                          <label>
+                              <input type="checkbox" id="counties" name="counties" value="counties" {% if not form_data or form_data.get('counties') %}checked{% endif %}>
+                              County-level records (縣 and equivalents)
+                          </label>
+                      </div>
+                      <p class="help-text">These checkboxes filter which CHGIS layers are searched and mapped.</p>
+                  </fieldset>
+
+                  <p class="help-text">Leave both text fields blank and provide a year or range to map all selected CHGIS records active in that period.</p>
+              </div>
 
               <div class="generate-button">
                   <input type="submit" value="Generate Map">
@@ -203,8 +238,9 @@
       <section class="notes">
           <div>
               <h2>How It Works</h2>
-              <p>The app scans pasted text against CHGIS names, including simplified/traditional variants and short administrative aliases. Candidate names are shown beside the map and can be unchecked.</p>
-              <p>Date filters are applied before candidates are mapped. If a detected name has no active CHGIS record in the selected year or range, it is excluded from the candidate list.</p>
+              <p>Text-passage search scans against CHGIS names, including simplified/traditional variants and short administrative aliases. Place-name search uses the names you enter directly.</p>
+              <p>Detected candidates are shown beside the map and can be unchecked. Date and level filters apply before candidates are mapped.</p>
+              <p>Administrative labels shift over time. The upper-level option groups records such as 郡, 州, 府, and 路 without assuming they meant the same thing in every period.</p>
           </div>
           <div>
               <h2>Notes</h2>

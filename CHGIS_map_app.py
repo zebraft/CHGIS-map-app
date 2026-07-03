@@ -591,8 +591,8 @@ class BaseLayerAutoSwitch(MacroElement):
                     }
                 }
             }
-            {{ this.map_name }}.on('zoomend', {{ this.switch_name }});
-            {{ this.switch_name }}();
+            {{ this.map_name }}.on('zoomend load', {{ this.switch_name }});
+            window.setTimeout({{ this.switch_name }}, 0);
         {% endmacro %}
     """)
 

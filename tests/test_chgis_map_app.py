@@ -170,6 +170,7 @@ class ChgisMapAppTest(unittest.TestCase):
         self.assertIn('Shaded relief', html)
         self.assertIn('layer_control', html)
         self.assertIn('zoomend', html)
+        self.assertIn('setTimeout', html)
         self.assertIn('getZoom() > 10', html)
         self.assertLess(html.find('World_Physical_Map'), html.find('World_Shaded_Relief'))
         self.assertIn('"maxZoom": 13', html)
