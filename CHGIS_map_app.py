@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 CHGIS_PLACENAME_URL = 'https://chgis.hudci.org/tgaz/placename'
 MAP_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}'
-REFERENCE_OVERLAY_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Reference_Overlay/MapServer/tile/{z}/{y}/{x}'
+PHYSICAL_MAP_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}'
 MAP_ATTRIBUTION = 'Tiles &copy; Esri'
 MAP_CENTER = [30.85158, 120.10989]
 MAP_ZOOM_START = 6
@@ -661,18 +661,18 @@ def generate_map(data):
 
     m = folium.Map(
         tiles=MAP_TILE_URL,
+        name='Shaded relief',
         location=MAP_CENTER,
         zoom_start=MAP_ZOOM_START,
         max_zoom=MAP_MAX_ZOOM,
         attr=MAP_ATTRIBUTION,
     )
     folium.TileLayer(
-        tiles=REFERENCE_OVERLAY_URL,
-        name='Reference overlay',
+        tiles=PHYSICAL_MAP_TILE_URL,
+        name='Physical map',
         attr=MAP_ATTRIBUTION,
-        overlay=True,
-        control=True,
         max_zoom=MAP_MAX_ZOOM,
+        control=True,
     ).add_to(m)
     logger.info("Map generated")
 
