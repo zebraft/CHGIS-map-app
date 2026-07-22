@@ -13,3 +13,5 @@ data/chgis_tgaz.sqlite
 data/CHGIS_tgaz_places.csv
 data/CHGIS_tgaz_supplement.csv
 data/CHGIS_v6_places.csv
+data/CHGIS_places.csv
+typescript
