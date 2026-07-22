@@ -3,3 +3,13 @@
 .DS_Store
 workerfile.py
 error.log
+data/ai_place_cleanup_cache.json
+.env
+__pycache__/
+tests/__pycache__/
+data/CHGISv6-2021/
+data/chgis_places.sqlite
+data/chgis_tgaz.sqlite
+data/CHGIS_tgaz_places.csv
+data/CHGIS_tgaz_supplement.csv
+data/CHGIS_v6_places.csv

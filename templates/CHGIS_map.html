@@ -10,14 +10,15 @@
     }
 
     h1 {
-      font-size: 24px;
-      margin: 16px 20px;
+      font-size: 22px;
+      margin: 14px 18px;
     }
 
     .map-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 320px;
-      height: calc(100vh - 64px);
+      grid-template-columns: minmax(0, 1fr) 360px;
+      height: calc(100vh - 188px);
+      min-height: 520px;
     }
 
     .map-pane {
@@ -34,8 +35,8 @@
       box-sizing: border-box;
       height: 100%;
       overflow-y: auto;
-      padding: 18px;
-      background: #fff9f0;
+      padding: 16px;
+      background: #fbf7ef;
     }
 
     .results-panel h2 {
@@ -45,8 +46,8 @@
 
     .panel-section {
       border-bottom: 1px solid #eadcc8;
-      margin-bottom: 16px;
-      padding-bottom: 16px;
+      margin-bottom: 14px;
+      padding-bottom: 14px;
     }
 
     .panel-section:last-child {
@@ -61,12 +62,17 @@
       color: #ffffff;
       cursor: pointer;
       font-size: 14px;
-      margin-top: 12px;
       padding: 8px 12px;
     }
 
     .secondary-button {
       background: #6b6257;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
     }
 
     .result-warning {
@@ -79,15 +85,45 @@
       padding: 10px;
     }
 
-    .matched-place-list {
+    .ai-cleanup {
+      background: #eef4ec;
+      border: 1px solid #a9bea2;
+      color: #33442f;
+      font-size: 14px;
+      line-height: 1.4;
+      margin: 0 0 16px;
+      padding: 10px;
+    }
+
+    .ai-cleanup ul {
+      margin: 6px 0 0;
+      padding-left: 18px;
+    }
+
+    .ai-cleanup li {
+      margin-bottom: 4px;
+    }
+
+    .matched-place-list,
+    .matched-date-list {
       list-style: none;
       margin: 0;
       padding: 0;
     }
 
-    .matched-place {
+    .matched-place,
+    .matched-date {
       border-bottom: 1px solid #eadcc8;
       padding: 10px 0;
+    }
+
+    .matched-place.located,
+    .matched-date.located {
+      background: #fff2c0;
+      margin-left: -8px;
+      margin-right: -8px;
+      padding-left: 8px;
+      padding-right: 8px;
     }
 
     .matched-place label {
@@ -97,18 +133,76 @@
       gap: 8px;
     }
 
-    .matched-place-name {
+    .matched-record-list {
+      list-style: none;
+      margin: 10px 0 0;
+      padding: 0;
+    }
+
+    .matched-record {
+      margin: 5px 0;
+    }
+
+    .matched-record label {
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr);
+      gap: 6px;
+    }
+
+    .matched-record-meta {
+      color: #4f493f;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .polygon-selection-summary {
+      color: #665a4b;
+      font-size: 14px;
+      line-height: 1.45;
+      margin: 0 0 10px;
+    }
+
+    .polygon-list {
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .polygon-swatch {
+      background: #4f8f73;
+      border: 1px solid #263f42;
+      display: inline-block;
+      height: 10px;
+      margin-right: 6px;
+      vertical-align: -1px;
+      width: 18px;
+    }
+
+    .matched-place-name,
+    .matched-date-name {
       display: block;
       font-size: 18px;
       font-weight: bold;
     }
 
-    .matched-place-meta {
+    .matched-place-meta,
+    .matched-date-meta {
       display: block;
       font-size: 13px;
       line-height: 1.4;
       margin-top: 4px;
       color: #665a4b;
+    }
+
+    .record-link {
+      color: #5f3f1b;
+      font-size: 12px;
+      text-decoration: none;
+    }
+
+    .record-link:hover {
+      text-decoration: underline;
     }
 
     .empty-results {
@@ -143,12 +237,130 @@
     .source-place {
       background: #ffe08a;
       border-radius: 2px;
+      cursor: pointer;
       padding: 1px 2px;
+    }
+
+    .source-date {
+      background: #f7c28d;
+      border-radius: 2px;
+      cursor: pointer;
+      padding: 1px 2px;
+    }
+
+    .source-fief-title {
+      background: #d6c2f0;
+      border-radius: 2px;
+      padding: 1px 2px;
+    }
+
+    .source-place[data-marker="choronym"] {
+      box-shadow: inset 0 -2px 0 #8b6f2f;
+    }
+
+    .source-place:focus,
+    .source-place.located,
+    .source-date:focus,
+    .source-date.located {
+      outline: 2px solid #7b5f25;
+      outline-offset: 1px;
     }
 
     .source-place.inactive {
       background: #e5e0d6;
       color: #746b5f;
+    }
+
+    .date-timeline {
+      border-top: 1px solid #d2c4af;
+      background: #f6efe4;
+      padding: 12px 20px 16px;
+    }
+
+    .date-timeline h2 {
+      font-size: 16px;
+      margin: 0 0 10px;
+    }
+
+    .timeline-list {
+      list-style: none;
+      margin: 0;
+      overflow-x: auto;
+      padding: 0;
+      position: relative;
+      height: 112px;
+      min-width: 760px;
+    }
+
+    .timeline-list::before {
+      background: #9b8060;
+      content: "";
+      height: 2px;
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 36px;
+    }
+
+    .timeline-date {
+      position: absolute;
+      top: 0;
+      transform: translateX(-1px);
+      width: 160px;
+    }
+
+    .timeline-date::before {
+      background: #f6efe4;
+      border: 2px solid #7f5a2f;
+      border-radius: 50%;
+      content: "";
+      height: 10px;
+      left: 0;
+      position: absolute;
+      top: 30px;
+      width: 10px;
+      z-index: 1;
+    }
+
+    .timeline-span {
+      background: #9f5f22;
+      border-radius: 2px;
+      display: block;
+      height: 4px;
+      left: 0;
+      position: absolute;
+      top: 35px;
+    }
+
+    .timeline-date.located {
+      background: #fff2c0;
+      outline: 2px solid #7b5f25;
+      outline-offset: 2px;
+    }
+
+    .timeline-years {
+      color: #3f372d;
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 42px;
+      white-space: nowrap;
+    }
+
+    .timeline-date-name {
+      color: #3f372d;
+      display: block;
+      font-size: 16px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .timeline-date-meta {
+      color: #665a4b;
+      display: block;
+      font-size: 13px;
+      line-height: 1.35;
+      margin-top: 4px;
     }
 
     @media (max-width: 800px) {
@@ -186,13 +398,17 @@
           <input type="hidden" name="source_text" value="{{ form_data.get('source_text', '') }}">
           <input type="hidden" name="date" value="{{ form_data.get('date', '') }}">
           <input type="hidden" name="date_range" value="{{ form_data.get('date_range', '') }}">
+          <input type="hidden" name="style_options_submitted" value="1">
+          {% if form_data.get('label_markers') or not form_data.get('style_options_submitted') %}
+            <input type="hidden" name="label_markers" value="label_markers">
+          {% endif %}
           {% if form_data.get('prefectures') %}
             <input type="hidden" name="prefectures" value="prefectures">
           {% endif %}
           {% if form_data.get('counties') %}
             <input type="hidden" name="counties" value="counties">
           {% endif %}
-          <button class="panel-button secondary-button" type="submit">Revise Search</button>
+          <button class="panel-button secondary-button" type="submit">Revise Input</button>
         </form>
       </section>
 
@@ -204,14 +420,19 @@
       {% endif %}
 
       <section class="panel-section">
-        <h2>Detected Place Names</h2>
+        <h2>Place Candidates</h2>
         {% if matched_places %}
-          <form action="/CHGIS_map" method="POST">
+          <form action="/CHGIS_map" method="POST" id="candidate-selection-form" autocomplete="off">
             <input type="hidden" name="place_names" value="{{ form_data.get('place_names', '') }}">
             <input type="hidden" name="source_text" value="{{ form_data.get('source_text', '') }}">
             <input type="hidden" name="date" value="{{ form_data.get('date', '') }}">
             <input type="hidden" name="date_range" value="{{ form_data.get('date_range', '') }}">
+            <input type="hidden" name="style_options_submitted" value="1">
+            {% if form_data.get('label_markers') or not form_data.get('style_options_submitted') %}
+              <input type="hidden" name="label_markers" value="label_markers">
+            {% endif %}
             <input type="hidden" name="detected_selection_submitted" value="1">
+            <input type="hidden" name="selected_records_state" id="selected-records-state" value="">
             {% if form_data.get('prefectures') %}
               <input type="hidden" name="prefectures" value="prefectures">
             {% endif %}
@@ -220,43 +441,104 @@
             {% endif %}
             <ul class="matched-place-list">
               {% for place in matched_places %}
-                <li class="matched-place">
+                <li class="matched-place" id="detected-place-{{ loop.index }}" data-place-name="{{ place.name }}">
+                  <span class="matched-place-name">{{ place.name }}</span>
+                  <span class="matched-place-meta">
+                    {{ place.count }} occurrence{% if place.count != 1 %}s{% endif %}
+                    {% if place.variant_display and place.variant_display != place.name %}
+                      · matched {{ place.variant_display }}
+                    {% endif %}
+                    {% if place.matched_by_alias %}
+                      · alias match{% if place.alias_variant_display %} {{ place.alias_variant_display }}{% endif %}
+                    {% endif %}
+                    {% if place.selected %}
+                      · on map
+                    {% else %}
+                      · not on map
+                    {% endif %}
+                  </span>
+                  {% if place.records %}
+                    <ul class="matched-record-list">
+                      {% for record in place.records %}
+                        <li class="matched-record">
+                          <label>
+                            <input class="record-toggle" type="checkbox" name="selected_records" value="{{ record.id }}" data-place-name="{{ place.name }}" autocomplete="off" {% if record.selected %}checked{% endif %}>
+                            <span class="matched-record-meta">
+                              {{ record.type }} {{ record.begin_year }}-{{ record.end_year }}
+                              · CHGIS {{ record.sys_id }}
+                              · <a class="record-link" href="{{ record.url }}" target="_blank">Open</a>
+                            </span>
+                          </label>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </form>
+        {% elif date_only_records %}
+          <form action="/CHGIS_map" method="POST" id="candidate-selection-form" autocomplete="off">
+            <input type="hidden" name="place_names" value="{{ form_data.get('place_names', '') }}">
+            <input type="hidden" name="source_text" value="{{ form_data.get('source_text', '') }}">
+            <input type="hidden" name="date" value="{{ form_data.get('date', '') }}">
+            <input type="hidden" name="date_range" value="{{ form_data.get('date_range', '') }}">
+            <input type="hidden" name="style_options_submitted" value="1">
+            {% if form_data.get('label_markers') or not form_data.get('style_options_submitted') %}
+              <input type="hidden" name="label_markers" value="label_markers">
+            {% endif %}
+            <input type="hidden" name="detected_selection_submitted" value="1">
+            <input type="hidden" name="selected_records_state" id="selected-records-state" value="">
+            {% if form_data.get('prefectures') %}
+              <input type="hidden" name="prefectures" value="prefectures">
+            {% endif %}
+            {% if form_data.get('counties') %}
+              <input type="hidden" name="counties" value="counties">
+            {% endif %}
+            <p class="empty-results">{{ date_only_record_count }} CHGIS records match this date filter. <span id="selected-record-count">{{ selected_record_count }}</span> are selected; {{ rendered_record_count }} mappable records are currently rendered. Uncheck records to update the map.</p>
+            <ul class="matched-record-list">
+              {% for record in date_only_records %}
+                <li class="matched-record">
                   <label>
-                    <input class="place-toggle" type="checkbox" name="selected_places" value="{{ place.name }}" {% if place.selected %}checked{% endif %}>
-                    <span>
-                      <span class="matched-place-name">{{ place.name }}</span>
-                      <span class="matched-place-meta">
-                        {{ place.count }} occurrence{% if place.count != 1 %}s{% endif %}
-                        {% if place.variant_display and place.variant_display != place.name %}
-                          · matched {{ place.variant_display }}
-                        {% endif %}
-                        {% if place.matched_by_alias %}
-                          · alias match{% if place.alias_variant_display %} {{ place.alias_variant_display }}{% endif %}
-                        {% endif %}
-                        · {{ place.result_count }} date-matched record{% if place.result_count != 1 %}s{% endif %}
-                        {% if place.selected %}
-                          · on map
-                        {% else %}
-                          · not on map
-                        {% endif %}
-                        {% if place.unmappable_count %}
-                          · {{ place.unmappable_count }} unmappable
-                        {% endif %}
-                        {% if place.result_count == 0 %}
-                          · no CHGIS rows for current filters
-                        {% endif %}
-                      </span>
+                    <input class="record-toggle" type="checkbox" name="selected_records" value="{{ record.id }}" data-place-name="{{ record.name }}" autocomplete="off" {% if record.selected %}checked{% endif %}>
+                    <span class="matched-record-meta">
+                      <strong>{{ record.name }}</strong>
+                      · {{ record.type }} {{ record.begin_year }}-{{ record.end_year }}
+                      · CHGIS {{ record.sys_id }}
+                      {% if not record.mappable %} · no coordinates{% endif %}
+                      · <a class="record-link" href="{{ record.url }}" target="_blank">Open</a>
                     </span>
                   </label>
                 </li>
               {% endfor %}
             </ul>
-            <button class="panel-button" type="submit">Update Map</button>
           </form>
         {% else %}
           <p class="empty-results">No place names were detected from pasted text.</p>
         {% endif %}
       </section>
+
+      {% if polygon_records %}
+        <section class="panel-section">
+          <h2>Polygon Shading</h2>
+          <p class="polygon-selection-summary"><span class="polygon-swatch"></span><span id="selected-polygon-count">0</span> of {{ polygon_records|length }} rendered polygons shaded.</p>
+          <ul class="matched-record-list polygon-list">
+            {% for polygon in polygon_records %}
+              <li class="matched-record">
+                <label>
+                  <input class="polygon-toggle" type="checkbox" value="{{ polygon.id }}" autocomplete="off">
+                  <span class="matched-record-meta">
+                    <strong>{{ polygon.name }}</strong>
+                    {% if polygon.type %} · {{ polygon.type }}{% endif %}
+                    {% if polygon.begin_year or polygon.end_year %} {{ polygon.begin_year }}-{{ polygon.end_year }}{% endif %}
+                    {% if polygon.sys_id %} · CHGIS V6 {{ polygon.sys_id }}{% endif %}
+                  </span>
+                </label>
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
 
       {% if unmappable_places %}
         <section class="panel-section">
@@ -265,20 +547,98 @@
             {% for place in unmappable_places %}
               <li>
                 <a href="{{ place.url }}" target="_blank">{{ place.name }}</a>
-                <span class="matched-place-meta">{{ place.type }} {{ place.begin_year }}-{{ place.end_year }}</span>
+                <span class="matched-place-meta">{{ place.type }} {{ place.begin_year }}-{{ place.end_year }} · CHGIS {{ place.sys_id }}</span>
               </li>
             {% endfor %}
           </ol>
         </section>
       {% endif %}
+
+      {% if ai_cleanup and ai_cleanup.ran %}
+        <section class="panel-section cleanup-reference">
+          <h2>Reading Cleanup</h2>
+          {% if ai_cleanup.removed %}
+            <div class="ai-cleanup">
+              Removed matches used as people, titles, reign names, or other non-place wording:
+              {% if ai_cleanup.model %}<span>AI model: {{ ai_cleanup.model }}.</span>{% endif %}
+              <ul>
+                {% for removed in ai_cleanup.removed %}
+                  <li>
+                    <strong>{{ removed.phrase }}</strong>
+                    {% if removed.names %} / {{ removed.names }}{% endif %}
+                    {% if removed.method %} [{{ removed.method }}]{% endif %}
+                    {% if removed.reason %}: {{ removed.reason }}{% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% else %}
+            <div class="ai-cleanup">
+              Cleanup checked {{ ai_cleanup.candidate_count }} possible CHGIS matches{% if ai_cleanup.model %} with {{ ai_cleanup.model }}{% endif %} and removed none.
+            </div>
+          {% endif %}
+        </section>
+      {% endif %}
     </aside>
   </div>
+  {% if matched_dates %}
+    <section class="date-timeline">
+      <h2>Dates</h2>
+      <ol class="timeline-list">
+        {% for date in matched_dates %}
+          <li class="timeline-date" data-date-index="{{ loop.index }}" style="left: {{ date.timeline_left|default('0') }}%;">
+            <span class="timeline-span" style="width: {{ date.timeline_width|default('2') }}%;"></span>
+            <span class="timeline-years">{{ date.timeline_label }}</span>
+            <span class="timeline-date-name">{{ date.matched_text }}</span>
+            <span class="timeline-date-meta">
+              {{ date.title }}{% if date.timeline_dynasty %} · {{ date.timeline_dynasty }}{% endif %}
+              {% if date.record_count > 5 %}
+                · {{ date.record_count }} possible reign periods
+              {% endif %}
+            </span>
+          </li>
+        {% endfor %}
+      </ol>
+    </section>
+  {% endif %}
   <script>
-    let updateMapTimer = null;
+    function clearLocatedPlaces() {
+      document.querySelectorAll('.matched-place.located, .timeline-date.located, .source-place.located, .source-date.located, .source-fief-title.located').forEach((element) => {
+        element.classList.remove('located');
+      });
+    }
+
+    function locatePlaceFromText(element) {
+      const names = (element.dataset.placeNames || '').split('|').filter(Boolean);
+      const placeItems = Array.from(document.querySelectorAll('.matched-place'));
+      const target = names
+        .map((name) => placeItems.find((item) => item.dataset.placeName === name))
+        .find(Boolean);
+      if (!target) {
+        return;
+      }
+
+      clearLocatedPlaces();
+      element.classList.add('located');
+      target.classList.add('located');
+      target.scrollIntoView({block: 'center', behavior: 'smooth'});
+    }
+
+    function locateDateFromText(element) {
+      const target = document.querySelector(`.timeline-date[data-date-index="${element.dataset.dateIndex}"]`);
+      if (!target) {
+        return;
+      }
+
+      clearLocatedPlaces();
+      element.classList.add('located');
+      target.classList.add('located');
+      target.scrollIntoView({block: 'center', behavior: 'smooth'});
+    }
 
     function updateSourceHighlights() {
       const selected = new Set(
-        Array.from(document.querySelectorAll('.place-toggle:checked')).map((input) => input.value)
+        Array.from(document.querySelectorAll('.record-toggle:checked')).map((input) => input.dataset.placeName)
       );
       document.querySelectorAll('.source-place').forEach((element) => {
         const names = (element.dataset.placeNames || '').split('|').filter(Boolean);
@@ -287,21 +647,77 @@
       });
     }
 
-    function scheduleMapUpdate(input) {
-      const form = input.closest('form');
-      window.clearTimeout(updateMapTimer);
-      updateMapTimer = window.setTimeout(() => {
-        form.submit();
-      }, 450);
+    function writeSelectedRecordState(form) {
+      const selectedRecordIds = Array.from(form.querySelectorAll('.record-toggle:checked')).map((input) => input.value);
+      const stateInput = document.getElementById('selected-records-state');
+      if (stateInput) {
+        stateInput.value = JSON.stringify(selectedRecordIds);
+      }
+      return selectedRecordIds;
     }
 
-    document.querySelectorAll('.place-toggle').forEach((input) => {
+    function applyRecordSelection(form) {
+      if (!form) {
+        return;
+      }
+      const selectedRecordIds = writeSelectedRecordState(form);
+      const selectedCount = document.getElementById('selected-record-count');
+      if (selectedCount) {
+        selectedCount.textContent = selectedRecordIds.length.toString();
+      }
+      if (window.CHGISMapSelection && typeof window.CHGISMapSelection.apply === 'function') {
+        window.CHGISMapSelection.apply(selectedRecordIds);
+      }
+    }
+
+    function applyPolygonSelection() {
+      const selectedPolygonIds = Array.from(document.querySelectorAll('.polygon-toggle:checked')).map((input) => input.value);
+      const selectedCount = document.getElementById('selected-polygon-count');
+      if (selectedCount) {
+        selectedCount.textContent = selectedPolygonIds.length.toString();
+      }
+      if (window.CHGISPolygonSelection && typeof window.CHGISPolygonSelection.apply === 'function') {
+        window.CHGISPolygonSelection.apply(selectedPolygonIds);
+      }
+    }
+
+    document.querySelectorAll('.record-toggle').forEach((input) => {
       input.addEventListener('change', () => {
         updateSourceHighlights();
-        scheduleMapUpdate(input);
+        applyRecordSelection(input.closest('form'));
+      });
+    });
+    document.querySelectorAll('.polygon-toggle').forEach((input) => {
+      input.addEventListener('change', applyPolygonSelection);
+    });
+    const candidateSelectionForm = document.getElementById('candidate-selection-form');
+    if (candidateSelectionForm) {
+      candidateSelectionForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        applyRecordSelection(candidateSelectionForm);
+      });
+      applyRecordSelection(candidateSelectionForm);
+    }
+    document.querySelectorAll('.source-place').forEach((element) => {
+      element.addEventListener('click', () => locatePlaceFromText(element));
+      element.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          locatePlaceFromText(element);
+        }
+      });
+    });
+    document.querySelectorAll('.source-date').forEach((element) => {
+      element.addEventListener('click', () => locateDateFromText(element));
+      element.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          locateDateFromText(element);
+        }
       });
     });
     updateSourceHighlights();
+    applyPolygonSelection();
   </script>
 </body>
 </html>

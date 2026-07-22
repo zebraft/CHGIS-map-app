@@ -1,83 +1,86 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Simple CHGIS Map</title>
+    <title>CHGIS Map</title>
     <style>
+      :root {
+          color-scheme: light;
+          --ink: #1f2423;
+          --muted: #5d6863;
+          --line: #cfd7d1;
+          --panel: #fbfcf8;
+          --field: #ffffff;
+          --accent: #2f5d62;
+          --accent-dark: #203f43;
+          --wash: #eef2ec;
+      }
+
       body {
-          background-color: #f4eadb;
-          color: #2f2f2f;
-          font-family: Arial, sans-serif;
+          background: #e7ece8;
+          color: var(--ink);
+          font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
           margin: 0;
           min-height: 100vh;
       }
 
       .container {
+          box-sizing: border-box;
           margin: 0 auto;
-          max-width: 920px;
-          padding: 48px 24px 72px;
-      }
-
-      h1 {
-          font-size: 34px;
-          margin: 0 0 10px;
-      }
-
-      h2 {
-          font-size: 20px;
-          margin: 0 0 16px;
-      }
-
-      p {
-          font-size: 16px;
-          line-height: 1.55;
-          margin: 0 0 14px;
+          max-width: 980px;
+          padding: 34px 24px 56px;
       }
 
       .intro {
+          border-bottom: 1px solid var(--line);
+          margin-bottom: 24px;
+          padding-bottom: 18px;
+      }
+
+      h1 {
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: 32px;
+          font-weight: 600;
+          letter-spacing: 0;
+          margin: 0 0 8px;
+      }
+
+      .intro p {
+          color: var(--muted);
+          font-size: 15px;
+          line-height: 1.5;
+          margin: 0;
           max-width: 760px;
-          margin-bottom: 28px;
+      }
+
+      h2 {
+          font-size: 18px;
+          margin: 0 0 16px;
+      }
+
+      h3 {
+          color: #34413d;
+          font-size: 13px;
+          letter-spacing: 0.04em;
+          margin: 0 0 12px;
+          text-transform: uppercase;
       }
 
       .form-section {
-          background: #fffaf2;
-          border: 1px solid #dfcfb8;
+          background: var(--panel);
+          border: 1px solid var(--line);
+          border-radius: 6px;
+          box-shadow: 0 14px 34px rgba(39, 55, 50, 0.08);
           padding: 22px;
-          margin-bottom: 28px;
       }
 
       .form-grid {
           display: grid;
-          gap: 16px;
-      }
-
-      .field label,
-      .level-options legend {
-          display: block;
-          font-size: 14px;
-          font-weight: bold;
-          margin-bottom: 6px;
-      }
-
-      .help-text {
-          color: #5f564b;
-          font-size: 14px;
-          line-height: 1.45;
-          margin: 6px 0 0;
-      }
-
-      .search-note {
-          background: #f0e3cf;
-          border-left: 4px solid #796046;
-          color: #332a21;
-          font-size: 15px;
-          line-height: 1.45;
-          margin: 0 0 18px;
-          padding: 10px 12px;
+          gap: 18px;
       }
 
       .form-subsection {
-          border-top: 1px solid #e4d6c2;
-          padding-top: 16px;
+          border-top: 1px solid #dde4de;
+          padding-top: 18px;
       }
 
       .form-subsection:first-child {
@@ -85,31 +88,61 @@
           padding-top: 0;
       }
 
-      .form-subsection h3 {
-          font-size: 16px;
-          margin: 0 0 10px;
+      .field label,
+      .level-options legend {
+          color: #2f3936;
+          display: block;
+          font-size: 13px;
+          font-weight: 700;
+          margin-bottom: 7px;
       }
 
       .field input[type="text"],
       .field textarea {
-          border: 1px solid #bba98f;
+          background: var(--field);
+          border: 1px solid #b8c2bb;
+          border-radius: 4px;
           box-sizing: border-box;
-          font-family: Arial, sans-serif;
+          color: var(--ink);
+          font-family: inherit;
           font-size: 16px;
           line-height: 1.4;
-          padding: 10px;
+          padding: 10px 11px;
           width: 100%;
       }
 
       .field textarea {
-          min-height: 86px;
+          min-height: 104px;
           resize: vertical;
+      }
+
+      .help-text,
+      .form-notes li,
+      .resources li {
+          color: var(--muted);
+          font-size: 13px;
+          line-height: 1.45;
+      }
+
+      .help-text {
+          margin: 6px 0 0;
+      }
+
+      .search-note {
+          background: var(--wash);
+          border: 1px solid #d5ded7;
+          border-radius: 4px;
+          color: #35423e;
+          font-size: 14px;
+          line-height: 1.45;
+          margin: 0 0 18px;
+          padding: 10px 12px;
       }
 
       .date-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
           gap: 14px;
+          grid-template-columns: 1fr 1fr;
       }
 
       .level-options {
@@ -119,62 +152,71 @@
       }
 
       .checkbox-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 18px;
+          display: grid;
+          gap: 8px;
       }
 
       .checkbox-row label {
-          font-size: 15px;
-          font-weight: normal;
+          align-items: start;
+          display: grid;
+          font-size: 14px;
+          font-weight: 400;
+          gap: 8px;
+          grid-template-columns: 16px minmax(0, 1fr);
           margin: 0;
       }
 
       .generate-button input[type="submit"] {
-          background: #303030;
+          background: var(--accent);
           border: 0;
+          border-radius: 4px;
           color: #ffffff;
           cursor: pointer;
-          font-size: 17px;
-          padding: 11px 18px;
+          font-size: 16px;
+          font-weight: 700;
+          padding: 11px 16px;
+      }
+
+      .generate-button input[type="submit"]:hover {
+          background: var(--accent-dark);
       }
 
       .error-message {
-          background: #fff3f0;
-          border: 1px solid #d46a5f;
-          color: #7a2f28;
-          font-size: 15px;
+          background: #fff7f4;
+          border: 1px solid #cf7b6a;
+          border-radius: 4px;
+          color: #73352d;
+          font-size: 14px;
           line-height: 1.4;
-          margin-bottom: 16px;
-          padding: 10px;
+          margin-bottom: 14px;
+          padding: 9px 10px;
       }
 
       .form-notes {
-          border-top: 1px solid #e4d6c2;
-          margin: 18px 0 0;
-          padding: 14px 0 0 20px;
+          border-top: 1px solid #dde4de;
+          margin: 2px 0 0;
+          padding: 14px 0 0 18px;
       }
 
       .form-notes li {
-          color: #4e463d;
-          font-size: 14px;
-          line-height: 1.45;
-          margin-bottom: 6px;
+          margin-bottom: 5px;
       }
 
       .resources {
-          margin-top: 24px;
+          margin-top: 20px;
       }
 
       .resources ul {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px 18px;
+          list-style: none;
           margin: 0;
-          padding-left: 20px;
+          padding: 0;
       }
 
-      .resources li {
-          font-size: 15px;
-          line-height: 1.5;
-          margin-bottom: 8px;
+      a {
+          color: var(--accent);
       }
 
       @media (max-width: 720px) {
@@ -183,7 +225,7 @@
           }
 
           .container {
-              padding: 28px 16px 48px;
+              padding: 24px 14px 42px;
           }
       }
   </style>
@@ -191,79 +233,92 @@
 <body>
   <div class="container">
       <header class="intro">
-          <h1>Simple CHGIS Map</h1>
-          <p>Map CHGIS places in two ways: paste a text passage for automatic detection, or enter place names directly. Dates and administrative levels are filters.</p>
+          <h1>CHGIS Map</h1>
+          <p>Build historical maps from place names, years, and pasted passages using local CHGIS data.</p>
       </header>
 
       <section class="form-section">
-          <h2>Search</h2>
+          <h2>Map Query</h2>
           {% if error_message %}
               <div class="error-message">{{ error_message }}</div>
           {% endif %}
-          <p class="search-note">To map every CHGIS record active in a period, leave both search fields blank and enter a single year or year range below.</p>
+          <p class="search-note">Enter place names, paste a passage, or enter only a year to map all active CHGIS records with selectable candidates.</p>
           <form action="/CHGIS_map" method="POST" class="form-grid">
               <div class="form-subsection form-grid">
-                  <h3>Search Type</h3>
+                  <h3>Input</h3>
                   <div class="field">
-                      <label for="source_text">Text passage</label>
-                      <textarea id="source_text" name="source_text" placeholder="Paste text to scan for place names">{{ form_data.get('source_text', '') }}</textarea>
-                      <p class="help-text">The app scans the passage for possible CHGIS names and shows candidates beside the map.</p>
+                      <label for="source_text">Historical text</label>
+                      <textarea id="source_text" name="source_text" placeholder="Paste a passage to scan for place names">{{ form_data.get('source_text', '') }}</textarea>
+                      <p class="help-text">Detected places appear as candidates that can be kept or removed from the map.</p>
                   </div>
 
                   <div class="field">
-                      <label for="place_names">Place-name search</label>
+                      <label for="place_names">Place-name list</label>
                       <input type="text" id="place_names" name="place_names" placeholder="江州，建康，保德縣" value="{{ form_data.get('place_names', '') }}">
-                      <p class="help-text">Enter one or more names directly. Separate names with "," or "，".</p>
+                      <p class="help-text">Separate names with "," or "，".</p>
                   </div>
               </div>
 
               <div class="form-subsection form-grid">
-                  <h3>Filters</h3>
+                  <h3>Date</h3>
                   <div class="date-grid">
                       <div class="field">
                           <label for="date">Single year</label>
-                          <input type="text" id="date" name="date" placeholder="426" value="{{ form_data.get('date', '') }}">
+                          <input type="text" id="date" name="date" placeholder="1350" value="{{ form_data.get('date', '') }}">
                           <p class="help-text">Show records active in this year.</p>
                       </div>
                       <div class="field">
                           <label for="date_range">Year range</label>
                           <input type="text" id="date_range" name="date_range" placeholder="700,1000" value="{{ form_data.get('date_range', '') }}">
-                          <p class="help-text">Show records overlapping this range. Use either a single year or a range.</p>
+                          <p class="help-text">Show records overlapping this range.</p>
                       </div>
                   </div>
+              </div>
 
+              <div class="form-subsection form-grid">
+                  <h3>Layers</h3>
                   <fieldset class="level-options">
                       <legend>Administrative levels</legend>
                       <div class="checkbox-row">
                           <label>
                               <input type="checkbox" id="prefectures" name="prefectures" value="prefectures" {% if not form_data or form_data.get('prefectures') %}checked{% endif %}>
-                              Prefectural and regional records (郡, 州, 府, 路, etc.)
+                              <span>Prefectural and regional records (郡, 州, 府, 路, etc.)</span>
                           </label>
                           <label>
                               <input type="checkbox" id="counties" name="counties" value="counties" {% if not form_data or form_data.get('counties') %}checked{% endif %}>
-                              County-level records (縣 and equivalents)
+                              <span>County-level records (縣 and equivalents)</span>
                           </label>
                       </div>
-                      <p class="help-text">These checkboxes filter which CHGIS layers are searched and mapped.</p>
+                      <p class="help-text">The selected levels are searched, detected, and mapped.</p>
+                  </fieldset>
+
+                  <fieldset class="level-options">
+                      <legend>Map symbols</legend>
+                      <input type="hidden" name="style_options_submitted" value="1">
+                      <div class="checkbox-row">
+                          <label>
+                              <input type="checkbox" id="label_markers" name="label_markers" value="label_markers" {% if not form_data or form_data.get('label_markers') %}checked{% endif %}>
+                              <span>Print place names directly on the map</span>
+                          </label>
+                      </div>
+                      <p class="help-text">Uncheck this for clustered pin markers on very dense maps.</p>
                   </fieldset>
 
               </div>
 
               <div class="generate-button">
-                  <input type="submit" value="Generate Map">
+                  <input type="submit" value="Create Map">
               </div>
 
               <ul class="form-notes">
-                  <li>Text-passage search finds possible CHGIS names and lets you uncheck candidates beside the map.</li>
-                  <li>Place-name search maps the names you enter directly; separate multiple names with commas.</li>
-                  <li>Dates and administrative levels filter both kinds of search.</li>
-                  <li>Nearby or identical locations are grouped into one marker with all records in the popup.</li>
+                  <li>Year-only maps include active CHGIS records and a checkbox list for pruning candidates.</li>
+                  <li>Year-relevant prefecture polygons are drawn where date context is available.</li>
+                  <li>Place labels use different shapes for county and prefectural records.</li>
               </ul>
           </form>
       </section>
 
       <section class="resources">
-          <h2>Resources</h2>
           <ul>
               <li><a href="https://github.com/zebraft/CHGIS-map-app.git" target="_blank">Repository</a></li>
               <li><a href="https://dataverse.harvard.edu/dataverse/chgis_v6" target="_blank">CHGIS v6 data</a></li>
